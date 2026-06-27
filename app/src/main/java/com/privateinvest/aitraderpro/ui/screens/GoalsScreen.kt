@@ -19,17 +19,21 @@ fun GoalsScreen() {
     val viewModel: GoalViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val summary = state.summary
-    LazyColumn(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
+    LazyColumn(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
         item { PremiumScreenTitle("Objectifs", "Suivi simple de ton objectif portefeuille") }
+        item { SafetyBanner("Un objectif sert à suivre la simulation, pas à promettre un gain.") }
         if (summary != null) {
             item {
                 PremiumCardBox("Objectif annuel", summary.label, accent = scoreColor(summary.progressPercent)) {
-                    PremiumMetric("Objectif", "${summary.annualTargetPercent.formatPlainPercent()}", Modifier.fillMaxWidth())
+                    PremiumMetric("Objectif", summary.annualTargetPercent.formatPlainPercent(), Modifier.fillMaxWidth())
                     ConfidenceBar("Progression", summary.progressPercent, Modifier.padding(top = 12.dp))
                     RowLine("Performance actuelle", summary.currentPerformancePercent.formatPercent())
                     PremiumActionButton("Objectif prudent 10 %", { viewModel.setGoal(10.0) }, Modifier.fillMaxWidth().padding(top = 10.dp))
                     PremiumSecondaryButton("Objectif dynamique 20 %", { viewModel.setGoal(20.0) }, Modifier.fillMaxWidth().padding(top = 8.dp))
                 }
+            }
+            state.chartBundle?.let { charts ->
+                item { SimpleLineChart("Courbe capital virtuel", charts.capitalCurve, accent = PremiumBlue) }
             }
         } else item { Text("Chargement de l’objectif...") }
     }

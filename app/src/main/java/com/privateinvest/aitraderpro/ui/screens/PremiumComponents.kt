@@ -1,5 +1,6 @@
 package com.privateinvest.aitraderpro.ui.screens
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -22,10 +23,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.Path
+import androidx.compose.ui.graphics.StrokeCap
+import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.privateinvest.aitraderpro.repository.PerformancePoint
 import com.privateinvest.aitraderpro.ui.theme.Slate
 import com.privateinvest.aitraderpro.ui.theme.SoftWhite
 import com.privateinvest.aitraderpro.ui.theme.Success
@@ -36,23 +42,14 @@ val DangerRed = Color(0xFFE11D48)
 val PremiumBlue = Color(0xFF38BDF8)
 val PremiumCard = Color(0xFF132238)
 val PremiumCardAlt = Color(0xFF1E314D)
+val PremiumMuted = Color(0xFF94A3B8)
 
 @Composable
 fun PremiumScreenTitle(title: String, subtitle: String? = null) {
-    Column(modifier = Modifier.padding(bottom = 8.dp)) {
-        Text(
-            text = title,
-            color = SoftWhite,
-            fontSize = 26.sp,
-            fontWeight = FontWeight.Bold
-        )
+    Column(modifier = Modifier.padding(bottom = 10.dp)) {
+        Text(text = title, color = SoftWhite, fontSize = 28.sp, fontWeight = FontWeight.Bold)
         subtitle?.let {
-            Text(
-                text = it,
-                color = Color.LightGray,
-                fontSize = 16.sp,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            Text(text = it, color = Color.LightGray, fontSize = 17.sp, lineHeight = 22.sp, modifier = Modifier.padding(top = 5.dp))
         }
     }
 }
@@ -68,23 +65,21 @@ fun PremiumCardBox(
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(containerColor = PremiumCard),
-        shape = RoundedCornerShape(22.dp)
+        shape = RoundedCornerShape(24.dp)
     ) {
-        Column(modifier = Modifier.padding(18.dp)) {
+        Column(modifier = Modifier.padding(20.dp)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Box(
                     modifier = Modifier
                         .background(accent, RoundedCornerShape(999.dp))
-                        .padding(horizontal = 8.dp, vertical = 4.dp)
-                ) {
-                    Text("AI", color = Color.White, fontSize = 12.sp, fontWeight = FontWeight.Bold)
-                }
-                Column(modifier = Modifier.padding(start = 10.dp)) {
-                    Text(title, fontSize = 19.sp, fontWeight = FontWeight.Bold, color = SoftWhite)
-                    subtitle?.let { Text(it, fontSize = 14.sp, color = Color.LightGray) }
+                        .padding(horizontal = 10.dp, vertical = 5.dp)
+                ) { Text("AI", color = Color.White, fontSize = 13.sp, fontWeight = FontWeight.Bold) }
+                Column(modifier = Modifier.padding(start = 12.dp)) {
+                    Text(title, fontSize = 20.sp, fontWeight = FontWeight.Bold, color = SoftWhite)
+                    subtitle?.let { Text(it, fontSize = 15.sp, lineHeight = 20.sp, color = Color.LightGray) }
                 }
             }
-            Spacer(Modifier.height(12.dp))
+            Spacer(Modifier.height(14.dp))
             content()
         }
     }
@@ -92,15 +87,11 @@ fun PremiumCardBox(
 
 @Composable
 fun PremiumMetric(title: String, value: String, modifier: Modifier = Modifier, accent: Color = PremiumBlue) {
-    Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(containerColor = Slate),
-        shape = RoundedCornerShape(20.dp)
-    ) {
-        Column(Modifier.padding(16.dp)) {
-            Text(title, color = Color.LightGray, fontSize = 14.sp)
-            Text(value, color = SoftWhite, fontSize = 28.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 4.dp))
-            Box(Modifier.padding(top = 8.dp).height(4.dp).fillMaxWidth().background(accent, RoundedCornerShape(999.dp)))
+    Card(modifier = modifier, colors = CardDefaults.cardColors(containerColor = Slate), shape = RoundedCornerShape(22.dp)) {
+        Column(Modifier.padding(18.dp)) {
+            Text(title, color = Color.LightGray, fontSize = 15.sp)
+            Text(value, color = SoftWhite, fontSize = 31.sp, fontWeight = FontWeight.Bold, modifier = Modifier.padding(top = 5.dp))
+            Box(Modifier.padding(top = 10.dp).height(5.dp).fillMaxWidth().background(accent, RoundedCornerShape(999.dp)))
         }
     }
 }
@@ -108,41 +99,32 @@ fun PremiumMetric(title: String, value: String, modifier: Modifier = Modifier, a
 @Composable
 fun SignalBadge(label: String, modifier: Modifier = Modifier) {
     val color = when (label.uppercase()) {
-        "ACHETER", "ACHAT", "BUY_SIMULATION", "OK" -> Success
-        "SURVEILLER", "ATTENTION", "MOYEN" -> Warning
-        "VENDRE", "ERREUR", "SELL_SIMULATION" -> DangerRed
+        "ACHETER", "ACHAT", "BUY_SIMULATION", "OK", "POSITIF", "PRÊT POUR TEST QUOTIDIEN", "VERROUILLÉ" -> Success
+        "SURVEILLER", "ATTENTION", "MOYEN", "À TESTER", "OPTIONNEL", "NEUTRE" -> Warning
+        "VENDRE", "ERREUR", "SELL_SIMULATION", "NÉGATIF" -> DangerRed
         else -> Color.Gray
     }
     Text(
         text = label,
         color = Color.White,
-        fontSize = 14.sp,
+        fontSize = 15.sp,
         fontWeight = FontWeight.Bold,
-        modifier = modifier
-            .background(color, RoundedCornerShape(999.dp))
-            .padding(horizontal = 12.dp, vertical = 7.dp)
+        modifier = modifier.background(color, RoundedCornerShape(999.dp)).padding(horizontal = 13.dp, vertical = 8.dp)
     )
 }
 
 @Composable
 fun ConfidenceBar(label: String, value: Int, modifier: Modifier = Modifier) {
     val progress = (value / 100f).coerceIn(0f, 1f)
-    val color = when {
-        value >= 70 -> Success
-        value >= 50 -> Warning
-        else -> DangerRed
-    }
+    val color = when { value >= 70 -> Success; value >= 50 -> Warning; else -> DangerRed }
     Column(modifier.fillMaxWidth()) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            Text(label, fontSize = 15.sp, color = Color.LightGray)
-            Text("$value %", fontSize = 16.sp, color = SoftWhite, fontWeight = FontWeight.Bold)
+            Text(label, fontSize = 16.sp, color = Color.LightGray)
+            Text("$value %", fontSize = 18.sp, color = SoftWhite, fontWeight = FontWeight.Bold)
         }
         LinearProgressIndicator(
             progress = { progress },
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(10.dp)
-                .padding(top = 6.dp),
+            modifier = Modifier.fillMaxWidth().height(12.dp).padding(top = 7.dp),
             color = color,
             trackColor = PremiumCardAlt
         )
@@ -153,29 +135,63 @@ fun ConfidenceBar(label: String, value: Int, modifier: Modifier = Modifier) {
 fun PremiumActionButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier, danger: Boolean = false) {
     Button(
         onClick = onClick,
-        modifier = modifier.height(52.dp),
-        shape = RoundedCornerShape(16.dp),
+        modifier = modifier.height(54.dp),
+        shape = RoundedCornerShape(17.dp),
         colors = ButtonDefaults.buttonColors(containerColor = if (danger) DangerRed else PremiumBlue)
-    ) { Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+    ) { Text(text, fontSize = 17.sp, fontWeight = FontWeight.Bold) }
 }
 
 @Composable
 fun PremiumSecondaryButton(text: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
-    OutlinedButton(
-        onClick = onClick,
-        modifier = modifier.height(52.dp),
-        shape = RoundedCornerShape(16.dp)
-    ) { Text(text, fontSize = 16.sp, fontWeight = FontWeight.Bold) }
+    OutlinedButton(onClick = onClick, modifier = modifier.height(54.dp), shape = RoundedCornerShape(17.dp)) {
+        Text(text, fontSize = 17.sp, fontWeight = FontWeight.Bold)
+    }
 }
 
-fun scoreColor(score: Int): Color = when {
-    score >= 75 -> Success
-    score >= 55 -> Warning
-    else -> DangerRed
+@Composable
+fun SimpleLineChart(
+    title: String,
+    points: List<PerformancePoint>,
+    modifier: Modifier = Modifier,
+    accent: Color = PremiumBlue
+) {
+    PremiumCardBox(title = title, subtitle = "Graphique simple, lisible sur téléphone", accent = accent, modifier = modifier) {
+        val safePoints = if (points.size < 2) listOf(PerformancePoint("Départ", 0.0), PerformancePoint("Actuel", 0.0)) else points
+        Canvas(modifier = Modifier.fillMaxWidth().height(160.dp)) {
+            val values = safePoints.map { it.value }
+            val min = values.minOrNull() ?: 0.0
+            val max = values.maxOrNull() ?: 1.0
+            val range = (max - min).takeIf { it != 0.0 } ?: 1.0
+            val stepX = size.width / (safePoints.size - 1).coerceAtLeast(1)
+            val path = Path()
+            safePoints.forEachIndexed { index, point ->
+                val x = index * stepX
+                val y = size.height - (((point.value - min) / range).toFloat() * size.height).coerceIn(0f, size.height)
+                if (index == 0) path.moveTo(x, y) else path.lineTo(x, y)
+            }
+            drawLine(PremiumCardAlt, Offset(0f, size.height), Offset(size.width, size.height), strokeWidth = 3f)
+            drawPath(path, accent, style = Stroke(width = 7f, cap = StrokeCap.Round))
+        }
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+            Text(safePoints.first().label, color = PremiumMuted, fontSize = 13.sp)
+            Text(safePoints.last().label, color = PremiumMuted, fontSize = 13.sp)
+        }
+    }
 }
 
+@Composable
+fun SafetyBanner(text: String = "Mode réel verrouillé : simulation uniquement, aucune opération automatique.") {
+    PremiumCardBox("Sécurité", text, accent = Warning) {
+        Text(
+            "Cette application fournit une aide à la décision. Elle ne garantit aucun gain. Toute action doit rester manuelle.",
+            color = Color.LightGray,
+            fontSize = 15.sp,
+            lineHeight = 21.sp
+        )
+    }
+}
 
-
+fun scoreColor(score: Int): Color = when { score >= 75 -> Success; score >= 55 -> Warning; else -> DangerRed }
 fun Double.formatPercent(): String = if (this >= 0) "+${String.format(java.util.Locale.FRANCE, "%.2f", this)} %" else "${String.format(java.util.Locale.FRANCE, "%.2f", this)} %"
 fun Double.formatPlainPercent(): String = String.format(java.util.Locale.FRANCE, "%.1f %%", this)
 fun Int.clampPercent(): Int = coerceIn(0, 100)

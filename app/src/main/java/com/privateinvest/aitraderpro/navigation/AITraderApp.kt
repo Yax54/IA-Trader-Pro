@@ -24,6 +24,7 @@ import com.privateinvest.aitraderpro.ui.screens.ExportCenterScreen
 import com.privateinvest.aitraderpro.ui.screens.FavoritesScreen
 import com.privateinvest.aitraderpro.ui.screens.GoalsScreen
 import com.privateinvest.aitraderpro.ui.screens.HealthScreen
+import com.privateinvest.aitraderpro.ui.screens.InstallTestScreen
 import com.privateinvest.aitraderpro.ui.screens.JournalIAScreen
 import com.privateinvest.aitraderpro.ui.screens.LoginScreen
 import com.privateinvest.aitraderpro.ui.screens.MoreScreen
@@ -100,6 +101,7 @@ fun AITraderApp() {
             }
             composable(AppDestination.SignalAssistant.route) { SignalAssistantScreen() }
             composable(AppDestination.More.route) { MoreScreen { route -> navController.navigate(route) } }
+            composable(AppDestination.InstallTest.route) { InstallTestScreen() }
             composable(AppDestination.JournalIA.route) { JournalIAScreen() }
             composable(AppDestination.CalendarIA.route) { CalendarIAScreen() }
             composable(AppDestination.Favorites.route) { FavoritesScreen(onOpenAsset = ::openAsset) }

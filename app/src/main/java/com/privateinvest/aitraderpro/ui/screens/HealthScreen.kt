@@ -21,8 +21,9 @@ import com.privateinvest.aitraderpro.viewmodel.HealthViewModel
 fun HealthScreen() {
     val viewModel: HealthViewModel = viewModel()
     val state by viewModel.uiState.collectAsStateWithLifecycle()
-    LazyColumn(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(12.dp)) {
-        item { PremiumScreenTitle("Santé IA", "Diagnostic rapide de l’application") }
+    LazyColumn(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        item { PremiumScreenTitle("Santé IA", "Diagnostic lisible de l'application") }
+        item { SafetyBanner("Contrôle rapide : API, Room, mémoire, simulation et notifications.") }
         items(state.checks) { check ->
             PremiumCardBox(check.title, check.detail, accent = if (check.status == "OK") scoreColor(80) else Warning) {
                 Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
@@ -30,6 +31,14 @@ fun HealthScreen() {
                     SignalBadge(check.status)
                 }
             }
+        }
+        state.chartBundle?.let { charts ->
+            item { SimpleLineChart("Capital virtuel", charts.capitalCurve, accent = PremiumBlue) }
+            item { SimpleLineChart("Win rate IA", charts.winRateCurve, accent = scoreColor(75)) }
+            item { SimpleLineChart("Poids IA", charts.weightCurve, accent = Warning) }
+        }
+        item {
+            PremiumSecondaryButton("Relancer le diagnostic", onClick = { viewModel.refresh() }, modifier = Modifier.fillMaxWidth())
         }
     }
 }

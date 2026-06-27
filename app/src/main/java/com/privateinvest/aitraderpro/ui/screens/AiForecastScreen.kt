@@ -19,7 +19,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Download
 import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.AlertDialog
@@ -105,7 +105,7 @@ fun AiForecastScreen(
             verticalAlignment = Alignment.CenterVertically
         ) {
             IconButton(onClick = onBack) {
-                Icon(Icons.Filled.ArrowBack, contentDescription = "Retour", tint = Color.White)
+                Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour", tint = Color.White)
             }
             Spacer(Modifier.width(8.dp))
             Column(Modifier.weight(1f)) {
@@ -132,7 +132,7 @@ fun AiForecastScreen(
             contentColor = Color.White,
             edgePadding = 8.dp
         ) {
-            ForecastTab.entries.forEachIndexed { index, tab ->
+            ForecastTab.entries.forEachIndexed { _, tab ->
                 Tab(
                     selected = state.selectedTab == tab,
                     onClick = { vm.onTabSelected(tab) },
@@ -203,8 +203,8 @@ fun AiForecastScreen(
 
 @Composable
 private fun MemoryPanel(
-    state: AiForecastUiState,
-    memoryType: String,
+    @Suppress("UNUSED_PARAMETER") state: AiForecastUiState,
+    @Suppress("UNUSED_PARAMETER") memoryType: String,
     activeForecasts: List<AiForecastEntity>,
     allForecasts: List<AiForecastEntity>,
     outcomes: Map<Long, AiForecastOutcomeEntity>,
@@ -791,8 +791,8 @@ private fun CompareCard(comp: ForecastVsPlayedResult) {
 private fun GlobalStatsPanel(
     statsCT: List<StrategyStats>,
     statsLT: List<StrategyStats>,
-    bucketsCT: List<BucketConfidence>,
-    bucketsLT: List<BucketConfidence>
+    @Suppress("UNUSED_PARAMETER") bucketsCT: List<BucketConfidence>,
+    @Suppress("UNUSED_PARAMETER") bucketsLT: List<BucketConfidence>
 ) {
     LazyColumn(
         modifier = Modifier.fillMaxSize().padding(horizontal = 16.dp),

@@ -174,7 +174,7 @@ class UltimateRepository(
         val apiKeyOk = BuildConfig.ALPHA_VANTAGE_API_KEY != "YOUR_API_KEY_HERE" && BuildConfig.ALPHA_VANTAGE_API_KEY.isNotBlank()
         val signals = db.signalDao().getAllSignals().size
         val memories = db.signalMemoryDao().getAll().size
-        val trades = db.tradeDao().getAll().size
+        @Suppress("UNUSED_VARIABLE") val trades = db.tradeDao().getAll().size
         val notifications = db.notificationHistoryDao().getAll().size
         val account = db.simulationAccountDao().getAccount()
         val favorites = db.favoriteAssetDao().getAll().size

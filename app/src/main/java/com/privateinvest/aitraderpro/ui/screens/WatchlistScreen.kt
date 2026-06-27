@@ -36,7 +36,6 @@ import com.privateinvest.aitraderpro.viewmodel.WatchlistViewModel
 fun WatchlistScreen(onOpenAsset: (String, String) -> Unit) {
     val viewModel: WatchlistViewModel = viewModel(factory = AITraderViewModelFactory)
     val signals by viewModel.items.collectAsStateWithLifecycle()
-    val loading by viewModel.loading.collectAsStateWithLifecycle()
     // C1 : barre de recherche actifs
     var searchQuery by remember { mutableStateOf("") }
 

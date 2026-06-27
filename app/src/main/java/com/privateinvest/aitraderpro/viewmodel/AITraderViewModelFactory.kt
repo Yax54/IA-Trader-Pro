@@ -11,6 +11,7 @@ import com.privateinvest.aitraderpro.viewmodel.PreferencesCenterViewModel
 import com.privateinvest.aitraderpro.viewmodel.MultiPortfolioViewModel
 import com.privateinvest.aitraderpro.viewmodel.DailyReportViewModel
 import com.privateinvest.aitraderpro.viewmodel.OnboardingViewModel
+import com.privateinvest.aitraderpro.viewmodel.AiForecastViewModel
 import com.privateinvest.aitraderpro.viewmodel.StrategyMonitoringViewModel
 import com.privateinvest.aitraderpro.viewmodel.TopOpportunitiesViewModel
 
@@ -39,6 +40,7 @@ object AITraderViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(OnboardingViewModel::class.java) -> OnboardingViewModel() as T
             modelClass.isAssignableFrom(TopOpportunitiesViewModel::class.java) -> TopOpportunitiesViewModel() as T
             modelClass.isAssignableFrom(StrategyMonitoringViewModel::class.java) -> StrategyMonitoringViewModel() as T
+            modelClass.isAssignableFrom(AiForecastViewModel::class.java) -> AiForecastViewModel() as T
             else -> throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
         }
     }

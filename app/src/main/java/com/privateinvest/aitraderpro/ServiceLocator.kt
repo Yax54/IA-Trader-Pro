@@ -8,6 +8,7 @@ import com.privateinvest.aitraderpro.notifications.TraderNotificationManager
 import com.privateinvest.aitraderpro.repository.AdaptiveWeightsManager
 import com.privateinvest.aitraderpro.repository.MarketRepository
 import com.privateinvest.aitraderpro.repository.MarketRepositoryImpl
+import com.privateinvest.aitraderpro.repository.AiForecastRepository
 import com.privateinvest.aitraderpro.repository.StrategyMonitoringRepository
 import com.privateinvest.aitraderpro.repository.UserPreferencesRepository
 import com.privateinvest.aitraderpro.repository.SecurityRepository
@@ -58,7 +59,8 @@ object ServiceLocator {
                 AppDatabase.MIGRATION_2_3,
                 AppDatabase.MIGRATION_3_4,
                 AppDatabase.MIGRATION_4_5,
-                AppDatabase.MIGRATION_5_6
+                AppDatabase.MIGRATION_5_6,
+                AppDatabase.MIGRATION_6_7
             )
             .build()
     }
@@ -77,6 +79,14 @@ object ServiceLocator {
 
     val securityRepository: SecurityRepository by lazy {
         SecurityRepository(appContext, database.securityLogDao())
+    }
+
+    val aiForecastRepository: AiForecastRepository by lazy {
+        AiForecastRepository(
+            db = database,
+            marketRepository = marketRepository,
+            notificationManager = notificationManager
+        )
     }
 
     val strategyMonitoringRepository: StrategyMonitoringRepository by lazy {

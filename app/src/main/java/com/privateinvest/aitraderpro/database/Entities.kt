@@ -179,3 +179,66 @@ data class StrategyFollowUpEntity(
     val closedReason: String? = null,
     val finalPerformancePercent: Double? = null
 )
+
+// ─── MODULE PRONOSTICS IA + MÉMOIRE GLISSANTE ────────────────────────────────
+
+/**
+ * Pronostic IA — signal sélectionné mais non nécessairement joué par l'utilisateur.
+ *
+ * memoryBucket : "7J" | "30J" | "90J" | "3M" | "6M" | "12M" | "GLOBAL"
+ * memoryType   : "CT"  (Court Terme : QUICK / SWING / HIGH_VOLATILITY)
+ *              | "LT"  (Long Terme  : LONG_TERM / GROWTH / DEFENSIVE)
+ * status       : "PENDING" | "ACTIVE" | "HIT_TARGET" | "HIT_STOP" | "EXPIRED" | "CANCELLED"
+ * userAction   : "NONE" | "PLAYED" | "IGNORED"
+ */
+@Entity(tableName = "ai_forecasts")
+data class AiForecastEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val symbol: String,
+    val name: String,
+    val strategyType: String,       // QUICK / SWING / HIGH_VOLATILITY / LONG_TERM / GROWTH / DEFENSIVE
+    val strategyLabel: String,
+    val memoryBucket: String,       // 7J / 30J / 90J / 3M / 6M / 12M / GLOBAL
+    val memoryType: String,         // CT | LT — détermine la mémoire indépendante utilisée
+    val score: Int,
+    val confidence: Int,            // 0–100
+    val entryPrice: Double,
+    val targetPercent: Double,
+    val stopPercent: Double,
+    val horizonDays: Int,
+    val status: String,
+    val userAction: String,         // NONE / PLAYED / IGNORED
+    val createdAt: Long,
+    val dueAt: Long,
+    val closedAt: Long? = null,
+    val finalPerformancePercent: Double? = null,
+    val closeReason: String? = null,
+    val notes: String = ""
+)
+
+/**
+ * Suivi des performances d'un pronostic IA selon plusieurs horizons temporels.
+ * Mis à jour par le WorkManager toutes les 6h.
+ */
+@Entity(tableName = "ai_forecast_outcomes")
+data class AiForecastOutcomeEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val forecastId: Long,
+    val symbol: String,
+    val priceJ1: Double? = null,
+    val priceJ3: Double? = null,
+    val priceJ7: Double? = null,
+    val priceJ30: Double? = null,
+    val priceJ90: Double? = null,
+    val performanceJ1: Double? = null,
+    val performanceJ3: Double? = null,
+    val performanceJ7: Double? = null,
+    val performanceJ30: Double? = null,
+    val performanceJ90: Double? = null,
+    val successJ1: Boolean? = null,
+    val successJ3: Boolean? = null,
+    val successJ7: Boolean? = null,
+    val successJ30: Boolean? = null,
+    val successJ90: Boolean? = null,
+    val updatedAt: Long = System.currentTimeMillis()
+)

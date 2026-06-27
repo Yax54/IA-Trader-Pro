@@ -218,3 +218,112 @@ interface StrategyFollowUpDao {
     @Query("DELETE FROM strategy_followups WHERE id = :id")
     suspend fun deleteById(id: Long)
 }
+
+// ─── MODULE PRONOSTICS IA ─────────────────────────────────────────────────────
+
+@Dao
+interface AiForecastDao {
+    // Lecture générale
+    @Query("SELECT * FROM ai_forecasts ORDER BY createdAt DESC")
+    suspend fun getAll(): List<AiForecastEntity>
+
+    // Pronostics par type de mémoire (CT ou LT) — mémoires indépendantes
+    @Query("SELECT * FROM ai_forecasts WHERE memoryType = :memoryType ORDER BY createdAt DESC")
+    suspend fun getByMemoryType(memoryType: String): List<AiForecastEntity>
+
+    // Pronostics actifs (non joués) par type de mémoire
+    @Query("SELECT * FROM ai_forecasts WHERE memoryType = :memoryType AND userAction = 'NONE' AND status = 'ACTIVE' ORDER BY score DESC")
+    suspend fun getActivePendingByMemoryType(memoryType: String): List<AiForecastEntity>
+
+    // Pronostics par bucket mémoire (7J, 30J, 90J, 3M, 6M, 12M)
+    @Query("SELECT * FROM ai_forecasts WHERE memoryBucket = :bucket ORDER BY createdAt DESC")
+    suspend fun getByBucket(bucket: String): List<AiForecastEntity>
+
+    // Pronostics par stratégie
+    @Query("SELECT * FROM ai_forecasts WHERE strategyType = :strategyType ORDER BY createdAt DESC")
+    suspend fun getByStrategy(strategyType: String): List<AiForecastEntity>
+
+    // Pronostics non joués (userAction = NONE) — pour les alertes
+    @Query("SELECT * FROM ai_forecasts WHERE userAction = 'NONE' AND status = 'ACTIVE' ORDER BY score DESC")
+    suspend fun getAllPending(): List<AiForecastEntity>
+
+    // Pronostics joués (userAction = PLAYED) — pour comparaison vs signal joué
+    @Query("SELECT * FROM ai_forecasts WHERE userAction = 'PLAYED' ORDER BY createdAt DESC")
+    suspend fun getAllPlayed(): List<AiForecastEntity>
+
+    // Pronostics non joués remarquables (perf > seuil) — pour alertes
+    @Query("""
+        SELECT f.* FROM ai_forecasts f
+        INNER JOIN ai_forecast_outcomes o ON f.id = o.forecastId
+        WHERE f.userAction = 'NONE'
+        AND (o.performanceJ7 > :threshold OR o.performanceJ30 > :threshold OR o.performanceJ1 > :threshold)
+        ORDER BY COALESCE(o.performanceJ30, o.performanceJ7, o.performanceJ1) DESC
+    """)
+    suspend fun getRemarkableUnplayed(threshold: Double): List<AiForecastEntity>
+
+    // Compte des pronostics créés aujourd'hui par stratégie (quota quotidien)
+    @Query("SELECT COUNT(*) FROM ai_forecasts WHERE strategyType = :strategyType AND createdAt > :since")
+    suspend fun countSince(strategyType: String, since: Long): Int
+
+    // Recherche par symbole
+    @Query("SELECT * FROM ai_forecasts WHERE symbol = :symbol ORDER BY createdAt DESC")
+    suspend fun getBySymbol(symbol: String): List<AiForecastEntity>
+
+    // Pronostics clôturés avec performance finale (pour stats)
+    @Query("SELECT * FROM ai_forecasts WHERE memoryType = :memoryType AND finalPerformancePercent IS NOT NULL ORDER BY closedAt DESC")
+    suspend fun getClosedWithPerformance(memoryType: String): List<AiForecastEntity>
+
+    // Stats par bucket — min 10 pronostics avant affichage
+    @Query("SELECT COUNT(*) FROM ai_forecasts WHERE memoryBucket = :bucket AND finalPerformancePercent IS NOT NULL")
+    suspend fun countClosedByBucket(bucket: String): Int
+
+    // Dernier pronostic par symbole et stratégie
+    @Query("SELECT * FROM ai_forecasts WHERE symbol = :symbol AND strategyType = :strategyType ORDER BY createdAt DESC LIMIT 1")
+    suspend fun findLatest(symbol: String, strategyType: String): AiForecastEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(item: AiForecastEntity): Long
+
+    @Update
+    suspend fun update(item: AiForecastEntity)
+
+    @Query("DELETE FROM ai_forecasts WHERE id = :id")
+    suspend fun deleteById(id: Long)
+
+    // Purge des pronostics expirés de plus de 12 mois (garder l'historique propre)
+    @Query("DELETE FROM ai_forecasts WHERE status = 'EXPIRED' AND dueAt < :before")
+    suspend fun purgeExpired(before: Long)
+}
+
+@Dao
+interface AiForecastOutcomeDao {
+    @Query("SELECT * FROM ai_forecast_outcomes ORDER BY updatedAt DESC")
+    suspend fun getAll(): List<AiForecastOutcomeEntity>
+
+    @Query("SELECT * FROM ai_forecast_outcomes WHERE forecastId = :forecastId LIMIT 1")
+    suspend fun findByForecastId(forecastId: Long): AiForecastOutcomeEntity?
+
+    @Query("SELECT * FROM ai_forecast_outcomes WHERE symbol = :symbol ORDER BY updatedAt DESC")
+    suspend fun findBySymbol(symbol: String): List<AiForecastOutcomeEntity>
+
+    // Outcomes pour les pronostics non joués d'un type mémoire — pour AdaptiveWeights
+    @Query("""
+        SELECT o.* FROM ai_forecast_outcomes o
+        INNER JOIN ai_forecasts f ON f.id = o.forecastId
+        WHERE f.memoryType = :memoryType AND f.userAction = 'NONE'
+        AND (o.performanceJ30 IS NOT NULL OR o.performanceJ7 IS NOT NULL OR o.performanceJ1 IS NOT NULL)
+    """)
+    suspend fun getOutcomesForUnplayedByMemoryType(memoryType: String): List<AiForecastOutcomeEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(item: AiForecastOutcomeEntity): Long
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(item: AiForecastOutcomeEntity): Long
+
+    @Update
+    suspend fun update(item: AiForecastOutcomeEntity)
+
+    @Query("DELETE FROM ai_forecast_outcomes WHERE forecastId = :forecastId")
+    suspend fun deleteByForecastId(forecastId: Long)
+}

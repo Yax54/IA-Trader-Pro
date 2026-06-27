@@ -26,6 +26,7 @@ fun MoreScreen(onNavigate: (String) -> Unit) {
             listOf(
                 MoreItem("watchlist", "Watchlist", "Actifs suivis et signaux"),
                 MoreItem("top_opportunities", "Top Opportunités", "Meilleurs signaux du moment"),
+                MoreItem("ai_forecasts", "🧠 Pronostics IA", "Mémoire glissante CT/LT — L'IA apprend même sans signal joué"),
                 MoreItem("stats_center", "Centre statistiques", "Performance par mois, actif et stratégie"),
                 MoreItem("audit", "Audit IA", "Fiabilité, mémoire et poids IA"),
                 MoreItem("journal_ia", "Journal IA", "Historique des décisions")

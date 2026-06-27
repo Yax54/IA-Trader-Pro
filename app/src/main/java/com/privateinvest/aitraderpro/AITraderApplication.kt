@@ -4,6 +4,7 @@ import android.app.Application
 import androidx.work.ExistingPeriodicWorkPolicy
 import androidx.work.PeriodicWorkRequestBuilder
 import androidx.work.WorkManager
+import com.privateinvest.aitraderpro.worker.AiForecastWorker
 import com.privateinvest.aitraderpro.worker.StrategyMonitoringWorker
 import java.util.concurrent.TimeUnit
 
@@ -13,6 +14,7 @@ class AITraderApplication : Application() {
         ServiceLocator.init(this)
         ServiceLocator.notificationManager.createChannel()
         scheduleStrategyMonitoring()
+        scheduleAiForecasts()
     }
 
     /**
@@ -25,6 +27,20 @@ class AITraderApplication : Application() {
             .build()
         WorkManager.getInstance(this).enqueueUniquePeriodicWork(
             StrategyMonitoringWorker.WORK_NAME,
+            ExistingPeriodicWorkPolicy.KEEP,
+            request
+        )
+    }
+
+    /**
+     * Planifie les pronostics IA et la mémoire glissante toutes les 6 heures.
+     * L'application apprend aussi sur les signaux non joués (CT et LT indépendants).
+     */
+    private fun scheduleAiForecasts() {
+        val request = PeriodicWorkRequestBuilder<AiForecastWorker>(6, TimeUnit.HOURS)
+            .build()
+        WorkManager.getInstance(this).enqueueUniquePeriodicWork(
+            AiForecastWorker.WORK_NAME,
             ExistingPeriodicWorkPolicy.KEEP,
             request
         )

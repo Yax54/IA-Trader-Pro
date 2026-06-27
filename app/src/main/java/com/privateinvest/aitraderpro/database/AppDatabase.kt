@@ -21,9 +21,11 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         WeightHistoryEntity::class,
         DecisionLogEntity::class,
         SecurityLogEntity::class,
-        StrategyFollowUpEntity::class
+        StrategyFollowUpEntity::class,
+        AiForecastEntity::class,
+        AiForecastOutcomeEntity::class
     ],
-    version = 6,
+    version = 7,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -42,6 +44,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun decisionLogDao(): DecisionLogDao
     abstract fun securityLogDao(): SecurityLogDao
     abstract fun strategyFollowUpDao(): StrategyFollowUpDao
+    abstract fun aiForecastDao(): AiForecastDao
+    abstract fun aiForecastOutcomeDao(): AiForecastOutcomeDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -194,6 +198,63 @@ abstract class AppDatabase : RoomDatabase() {
                         closedAt INTEGER,
                         closedReason TEXT,
                         finalPerformancePercent REAL
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
+        val MIGRATION_6_7 = object : Migration(6, 7) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS ai_forecasts (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        symbol TEXT NOT NULL,
+                        name TEXT NOT NULL,
+                        strategyType TEXT NOT NULL,
+                        strategyLabel TEXT NOT NULL,
+                        memoryBucket TEXT NOT NULL,
+                        memoryType TEXT NOT NULL DEFAULT 'CT',
+                        score INTEGER NOT NULL,
+                        confidence INTEGER NOT NULL,
+                        entryPrice REAL NOT NULL,
+                        targetPercent REAL NOT NULL,
+                        stopPercent REAL NOT NULL,
+                        horizonDays INTEGER NOT NULL,
+                        status TEXT NOT NULL,
+                        userAction TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL,
+                        dueAt INTEGER NOT NULL,
+                        closedAt INTEGER,
+                        finalPerformancePercent REAL,
+                        closeReason TEXT,
+                        notes TEXT NOT NULL DEFAULT ''
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS ai_forecast_outcomes (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        forecastId INTEGER NOT NULL,
+                        symbol TEXT NOT NULL,
+                        priceJ1 REAL,
+                        priceJ3 REAL,
+                        priceJ7 REAL,
+                        priceJ30 REAL,
+                        priceJ90 REAL,
+                        performanceJ1 REAL,
+                        performanceJ3 REAL,
+                        performanceJ7 REAL,
+                        performanceJ30 REAL,
+                        performanceJ90 REAL,
+                        successJ1 INTEGER,
+                        successJ3 INTEGER,
+                        successJ7 INTEGER,
+                        successJ30 INTEGER,
+                        successJ90 INTEGER,
+                        updatedAt INTEGER NOT NULL
                     )
                     """.trimIndent()
                 )

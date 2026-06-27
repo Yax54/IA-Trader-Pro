@@ -29,4 +29,5 @@ sealed class AppDestination(val route: String, val label: String) {
     data object DailyReport : AppDestination("daily_report", "Rapport quotidien")
     data object Onboarding : AppDestination("onboarding", "Première utilisation")
     data object StrategyMonitoring : AppDestination("strategy_monitoring", "Suivi intelligent")
+    data object AiForecasts : AppDestination("ai_forecasts", "Pronostics IA")
 }

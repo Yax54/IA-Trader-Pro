@@ -1,3 +1,5 @@
+import java.util.Properties
+
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
@@ -24,12 +26,24 @@ android {
         buildConfigField("String", "ALPHA_VANTAGE_BASE_URL", "\"https://www.alphavantage.co/\"")
     }
 
+    // Chargement du keystore de release depuis key.properties
+    val keyPropertiesFile = rootProject.file("key.properties")
+    val keyProperties = Properties().apply {
+        if (keyPropertiesFile.exists()) keyPropertiesFile.inputStream().use { load(it) }
+    }
+
     signingConfigs {
         getByName("debug") {
             storeFile = file("${System.getProperty("user.home")}/.android/debug.keystore")
             storePassword = "android"
             keyAlias = "androiddebugkey"
             keyPassword = "android"
+        }
+        create("release") {
+            storeFile = file(keyProperties["storeFile"] as String)
+            storePassword = keyProperties["storePassword"] as String
+            keyAlias = keyProperties["keyAlias"] as String
+            keyPassword = keyProperties["keyPassword"] as String
         }
     }
 
@@ -39,8 +53,9 @@ android {
             isDebuggable = true
         }
         release {
-            isMinifyEnabled = false
-            signingConfig = signingConfigs.getByName("debug") // Remplacez par un vrai keystore en prod
+            isMinifyEnabled = true
+            isShrinkResources = true
+            signingConfig = signingConfigs.getByName("release")
             proguardFiles(
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"

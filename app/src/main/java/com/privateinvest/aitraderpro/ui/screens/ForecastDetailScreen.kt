@@ -14,7 +14,6 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -249,18 +248,11 @@ private fun ExplainableInfoRow(label: String, value: String, explanation: String
     }
 
     if (showInfo) {
-        AlertDialog(
-            onDismissRequest = { showInfo = false },
-            title = { Text(label, color = SoftWhite, fontWeight = FontWeight.Bold) },
-            text = { Text(explanation, color = Color.LightGray, fontSize = 16.sp, lineHeight = 23.sp) },
-            confirmButton = {
-                TextButton(onClick = { showInfo = false }) {
-                    Text("Compris", color = PremiumBlue, fontWeight = FontWeight.Bold)
-                }
-            },
-            containerColor = Color(0xFF111827),
-            titleContentColor = SoftWhite,
-            textContentColor = Color.LightGray
+        PremiumEducationDialog(
+            title = label,
+            subtitle = "Explication dynamique du pronostic",
+            content = explanation,
+            onDismiss = { showInfo = false }
         )
     }
 }
@@ -288,25 +280,200 @@ private fun TimelineLine(label: String, value: Double?) {
 
 
 @Suppress("UNUSED_PARAMETER")
-private fun explanationFor(key: String, f: AiForecastEntity): String = when (key.lowercase(Locale.ROOT)) {
-    "rsi" -> "RSI = Relative Strength Index. En simple : il mesure si une action est plutôt trop achetée ou trop vendue. Un RSI très bas peut indiquer une opportunité de rebond, mais ce n'est jamais suffisant seul. L'IA le combine avec le volume, la tendance et le risque."
-    "macd" -> "MACD = indicateur de changement de tendance. En simple : il aide à voir si le mouvement commence à repartir à la hausse ou à se retourner à la baisse. Un croisement haussier renforce un signal d'achat, surtout s'il est confirmé par le volume."
-    "ema" -> "EMA = moyenne mobile exponentielle. Elle donne plus de poids aux prix récents. En simple : elle aide l'IA à savoir si la tendance récente est positive ou négative. EMA20 > EMA50 est souvent un signe de tendance courte favorable."
-    "sma" -> "SMA = moyenne mobile simple. Elle lisse les prix sur une période. En simple : elle permet de voir la tendance générale sans être perturbé par chaque petite variation."
-    "atr" -> "ATR = amplitude moyenne des mouvements. En simple : il mesure combien l'action bouge habituellement. L'IA l'utilise surtout pour placer un stop-loss réaliste : assez proche pour protéger, mais pas trop proche pour éviter une sortie sur une variation normale."
-    "volume" -> "Le volume indique combien d'actions sont échangées. En simple : un mouvement avec beaucoup de volume est plus crédible qu'un mouvement avec peu d'échanges. C'est une confirmation importante pour éviter les faux signaux."
-    "support" -> "Un support est une zone où le prix a souvent tendance à rebondir. En simple : c'est une zone de prix où des acheteurs peuvent revenir. L'IA l'utilise pour comprendre si le risque de baisse est limité."
-    "résistance", "resistance" -> "Une résistance est une zone où le prix peut avoir du mal à monter plus haut. En simple : c'est une zone où beaucoup de vendeurs peuvent apparaître. L'IA l'utilise pour fixer un objectif réaliste."
-    "catégorie" -> "La catégorie explique le type d'opportunité détectée : opportunité rapide, swing, long terme, forte volatilité, croissance ou défensif. Elle t'aide à comprendre l'horizon et le comportement attendu, sans mélanger toutes les stratégies."
-    "score ia" -> "Le score IA résume la qualité technique du signal sur 100. Plus il est haut, plus les critères sont favorables. Mais il ne garantit jamais un gain : il sert à classer les opportunités et à éviter les signaux faibles."
-    "confiance" -> "La confiance indique à quel point l'IA estime que le signal est cohérent avec les données disponibles et avec la mémoire des cas similaires. Une forte confiance signifie que plusieurs éléments vont dans le même sens."
-    "objectif" -> "L'objectif est le niveau où l'IA estime qu'une vente peut être envisagée. Ce n'est pas une obligation : c'est un repère pour savoir quand un gain attendu est atteint."
-    "stop-loss" -> "Le stop-loss est le niveau de protection. Si le prix descend jusque-là, le scénario de départ est probablement invalidé. L'application t'alerte, mais elle ne vend jamais automatiquement."
-    "horizon" -> "L'horizon indique la durée normale du pronostic : quelques jours pour une opportunité rapide, plusieurs semaines pour un swing, plusieurs mois pour du long terme. Il évite de juger trop vite une stratégie qui n'a pas le même rythme."
-    "suivi intelligent" -> "Le suivi intelligent compare le prix réel après J+1, J+3, J+7, J+30 et J+90. Il sert à mesurer si l'IA avait raison, même si tu n'as pas acheté. C'est ce qui alimente la mémoire et l'apprentissage."
-    "évolution" -> "L'évolution de l'avis IA montre comment le pronostic change dans le temps : conserver, surveiller, objectif atteint, stop touché ou vente à envisager. L'idée est de suivre le raisonnement, pas seulement le signal initial."
-    "volatilité" -> "La volatilité mesure à quel point le prix varie fortement. Une forte volatilité peut créer des opportunités rapides, mais augmente aussi le risque. L'IA l'utilise pour adapter l'objectif, le stop-loss et la prudence."
-    else -> "Cette information aide à comprendre pourquoi l'IA a créé ce pronostic. Elle doit toujours être lue avec le score, le risque, l'objectif et le suivi intelligent."
+private fun explanationFor(key: String, f: AiForecastEntity): String {
+    val targetPrice = f.entryPrice * (1.0 + f.targetPercent / 100.0)
+    val stopPrice = f.entryPrice * (1.0 - f.stopPercent / 100.0)
+    return when (key.lowercase(Locale.ROOT)) {
+        "rsi" -> """
+### RSI actuel dans ce pronostic
+Le RSI aide à voir si l'action est trop vendue ou trop achetée.
+
+### Comment le lire simplement
+Sous 30, l'action peut être en zone de survente. Cela peut annoncer un rebond, surtout pour une opportunité rapide.
+
+### Dans ce pronostic
+Catégorie : ${f.strategyLabel}
+Score IA : ${f.score}/100
+Confiance : ${f.confidence}%
+
+### Impact sur la décision
+L'IA ne décide jamais avec le RSI seul. Elle le combine avec MACD, volume, tendance, objectif et risque.
+""".trimIndent()
+        "macd" -> """
+### MACD dans ce pronostic
+Le MACD sert à repérer un changement de tendance.
+
+### Comment le lire simplement
+Quand le MACD devient haussier, cela peut indiquer que les acheteurs reprennent la main.
+
+### Dans ce pronostic
+L'IA l'utilise pour confirmer que le mouvement peut continuer vers l'objectif.
+Objectif visé : ${money(targetPrice)} (+${one(f.targetPercent)}%)
+
+### Impact sur la décision
+Un MACD favorable augmente la confiance, mais l'IA vérifie aussi le volume et le niveau de risque.
+""".trimIndent()
+        "ema" -> """
+### EMA
+L'EMA est une moyenne mobile qui donne plus d'importance aux prix récents.
+
+### Pourquoi l'IA l'utilise
+Elle aide à savoir si la tendance récente est favorable.
+
+### Dans ce pronostic
+Catégorie : ${f.strategyLabel}
+Horizon : ${f.horizonDays} jours
+
+### Interprétation simple
+Si les moyennes courtes sont mieux orientées que les longues, l'IA considère que le mouvement est plus propre.
+""".trimIndent()
+        "sma" -> """
+### SMA
+La SMA est une moyenne simple des prix.
+
+### Pourquoi elle est utile
+Elle montre la tendance générale sans réagir trop fortement aux petites variations.
+
+### Dans ce pronostic
+Elle sert de repère complémentaire pour éviter de prendre un signal uniquement sur un mouvement trop court.
+""".trimIndent()
+        "atr" -> """
+### ATR
+L'ATR mesure l'amplitude habituelle des mouvements.
+
+### Dans ce pronostic
+Prix au signal : ${money(f.entryPrice)}
+Stop-loss estimé : ${money(stopPrice)} (-${one(f.stopPercent)}%)
+
+### Pourquoi c'est important
+Le stop-loss doit tenir compte du mouvement normal de l'action. Trop proche, il déclenche trop vite. Trop loin, il protège mal ton capital.
+""".trimIndent()
+        "volume" -> """
+### Volume
+Le volume indique combien d'actions sont échangées.
+
+### Comment le lire simplement
+Un signal avec du volume est plus crédible qu'un signal avec peu d'échanges.
+
+### Dans ce pronostic
+L'IA vérifie que le mouvement n'est pas un simple bruit de marché.
+""".trimIndent()
+        "support" -> """
+### Support
+Un support est une zone où le prix peut rebondir.
+
+### Dans ce pronostic
+Prix au signal : ${money(f.entryPrice)}
+Stop-loss : ${money(stopPrice)}
+
+### Pourquoi l'IA l'utilise
+Si le prix est proche d'un support, le risque peut être mieux contrôlé.
+""".trimIndent()
+        "résistance", "resistance" -> """
+### Résistance
+Une résistance est une zone où le prix peut bloquer ou ralentir.
+
+### Dans ce pronostic
+Objectif estimé : ${money(targetPrice)}
+Gain attendu : +${one(f.targetPercent)}%
+
+### Pourquoi l'IA l'utilise
+La résistance aide à fixer un objectif réaliste et à savoir quand une vente est à envisager.
+""".trimIndent()
+        "catégorie" -> """
+### Catégorie du pronostic
+${f.strategyLabel}
+
+### Ce que ça veut dire
+${strategyExplanation(f.strategyType)}
+
+### Pourquoi c'est utile
+Toutes les opportunités ne se jouent pas pareil. Une opportunité rapide se juge en jours. Un long terme se juge en mois.
+""".trimIndent()
+        "score ia" -> """
+### Score IA
+Score actuel : ${f.score}/100
+
+### Ce que ça veut dire
+Le score résume la qualité du signal détecté par l'IA.
+
+### Comment l'interpréter
+Plus le score est haut, plus les critères techniques sont alignés. Ce score ne garantit jamais un gain, il sert à classer les opportunités.
+""".trimIndent()
+        "confiance" -> """
+### Confiance
+Confiance actuelle : ${f.confidence}%
+
+### Ce que ça veut dire
+La confiance mesure la cohérence globale du pronostic avec les données disponibles et les cas similaires.
+
+### Dans ce pronostic
+${confidenceExplanation(f)}
+""".trimIndent()
+        "objectif" -> """
+### Objectif
+Prix au signal : ${money(f.entryPrice)}
+Prix cible : ${money(targetPrice)}
+Gain attendu : +${one(f.targetPercent)}%
+
+### Pourquoi c'est important
+L'objectif indique le niveau où une vente peut être étudiée. L'application t'alerte, mais ne vend jamais automatiquement.
+""".trimIndent()
+        "stop-loss" -> """
+### Stop-loss
+Prix de protection : ${money(stopPrice)}
+Distance : -${one(f.stopPercent)}%
+
+### Ce que ça veut dire
+Si le prix atteint ce niveau, le scénario de départ est probablement invalidé.
+
+### Rôle
+Limiter la perte et éviter de rester bloqué dans une mauvaise position.
+""".trimIndent()
+        "horizon" -> """
+### Horizon
+Durée estimée : ${f.horizonDays} jours
+
+### Pourquoi c'est important
+Une opportunité rapide ne se juge pas comme un long terme. L'horizon évite de conclure trop vite ou trop tard.
+
+### Dans ce pronostic
+L'IA suit les étapes J+1, J+3, J+7, J+30 et J+90 selon la stratégie.
+""".trimIndent()
+        "suivi intelligent" -> """
+### Suivi intelligent
+Le suivi mesure le résultat du pronostic après plusieurs dates : J+1, J+3, J+7, J+30 et J+90.
+
+### Ce que l'application vérifie
+Prix, objectif, stop-loss, évolution du signal et cohérence avec la catégorie.
+
+### Important
+Ce suivi fonctionne même si tu n'as pas acheté. C'est ce qui permet à l'IA d'apprendre sur les pronostics non joués.
+""".trimIndent()
+        "évolution" -> """
+### Évolution de l'avis IA
+L'IA ne se limite pas au signal initial. Elle observe comment le pronostic évolue dans le temps.
+
+### Exemples
+Conserver, surveiller, objectif atteint, stop touché, vente à envisager.
+
+### Important
+L'application n'achète pas et ne vend pas toute seule. Elle explique et t'alerte. Tu valides toujours.
+""".trimIndent()
+        "volatilité" -> """
+### Volatilité
+La volatilité indique à quel point le prix bouge fortement.
+
+### Dans ce pronostic
+Catégorie : ${f.strategyLabel}
+Stop-loss : -${one(f.stopPercent)}%
+Objectif : +${one(f.targetPercent)}%
+
+### Interprétation
+Plus la volatilité est forte, plus le potentiel peut être élevé, mais plus le risque augmente aussi.
+""".trimIndent()
+        else -> "Cette information aide à comprendre pourquoi l'IA a créé ce pronostic. Elle doit toujours être lue avec le score, le risque, l'objectif et le suivi intelligent."
+    }
 }
 
 private fun buildWhyText(f: AiForecastEntity): String = when (f.strategyType) {

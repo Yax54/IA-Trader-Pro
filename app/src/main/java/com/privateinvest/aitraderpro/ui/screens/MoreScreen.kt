@@ -34,6 +34,7 @@ fun MoreScreen(onNavigate: (String) -> Unit) {
         MoreGroup(
             "Gestion",
             listOf(
+                MoreItem("strategy_monitoring", "🔔 Suivi intelligent", "Alertes vente — tu décides, l'app surveille"),
                 MoreItem("portfolio", "Portefeuilles", "Simulation et suivi"),
                 MoreItem("multi_portfolio", "Multi-portefeuilles", "Simulation, réel, long terme, dividendes"),
                 MoreItem("daily_report", "Rapport quotidien", "Résumé d'utilisation"),

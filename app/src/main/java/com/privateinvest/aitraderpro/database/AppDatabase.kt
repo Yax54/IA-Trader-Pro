@@ -20,9 +20,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         PortfolioGoalEntity::class,
         WeightHistoryEntity::class,
         DecisionLogEntity::class,
-        SecurityLogEntity::class
+        SecurityLogEntity::class,
+        StrategyFollowUpEntity::class
     ],
-    version = 5,
+    version = 6,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -40,6 +41,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun weightHistoryDao(): WeightHistoryDao
     abstract fun decisionLogDao(): DecisionLogDao
     abstract fun securityLogDao(): SecurityLogDao
+    abstract fun strategyFollowUpDao(): StrategyFollowUpDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -161,6 +163,37 @@ abstract class AppDatabase : RoomDatabase() {
                         level TEXT NOT NULL,
                         details TEXT NOT NULL,
                         createdAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
+        val MIGRATION_5_6 = object : Migration(5, 6) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS strategy_followups (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        symbol TEXT NOT NULL,
+                        name TEXT NOT NULL,
+                        strategyType TEXT NOT NULL,
+                        strategyLabel TEXT NOT NULL,
+                        mode TEXT NOT NULL,
+                        entryPrice REAL NOT NULL,
+                        currentPrice REAL NOT NULL,
+                        targetPercent REAL NOT NULL,
+                        stopPercent REAL NOT NULL,
+                        maxHoldingDays INTEGER NOT NULL,
+                        openedAt INTEGER NOT NULL,
+                        lastCheckedAt INTEGER NOT NULL,
+                        lastAlertAt INTEGER NOT NULL DEFAULT 0,
+                        status TEXT NOT NULL,
+                        alertReason TEXT,
+                        alertStatus TEXT,
+                        closedAt INTEGER,
+                        closedReason TEXT,
+                        finalPerformancePercent REAL
                     )
                     """.trimIndent()
                 )

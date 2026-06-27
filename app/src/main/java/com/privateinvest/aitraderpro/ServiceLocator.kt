@@ -8,6 +8,7 @@ import com.privateinvest.aitraderpro.notifications.TraderNotificationManager
 import com.privateinvest.aitraderpro.repository.AdaptiveWeightsManager
 import com.privateinvest.aitraderpro.repository.MarketRepository
 import com.privateinvest.aitraderpro.repository.MarketRepositoryImpl
+import com.privateinvest.aitraderpro.repository.StrategyMonitoringRepository
 import com.privateinvest.aitraderpro.repository.UserPreferencesRepository
 import com.privateinvest.aitraderpro.repository.SecurityRepository
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -52,7 +53,13 @@ object ServiceLocator {
 
     val database: AppDatabase by lazy {
         Room.databaseBuilder(appContext, AppDatabase::class.java, "ai_trader_pro.db")
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5)
+            .addMigrations(
+                AppDatabase.MIGRATION_1_2,
+                AppDatabase.MIGRATION_2_3,
+                AppDatabase.MIGRATION_3_4,
+                AppDatabase.MIGRATION_4_5,
+                AppDatabase.MIGRATION_5_6
+            )
             .build()
     }
 
@@ -70,6 +77,14 @@ object ServiceLocator {
 
     val securityRepository: SecurityRepository by lazy {
         SecurityRepository(appContext, database.securityLogDao())
+    }
+
+    val strategyMonitoringRepository: StrategyMonitoringRepository by lazy {
+        StrategyMonitoringRepository(
+            db = database,
+            marketRepository = marketRepository,
+            notificationManager = notificationManager
+        )
     }
 
     val marketRepository: MarketRepository by lazy {

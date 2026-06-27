@@ -2,6 +2,7 @@ package com.privateinvest.aitraderpro.viewmodel
 
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.privateinvest.aitraderpro.ServiceLocator
 import com.privateinvest.aitraderpro.data.model.AssetDetail
 import com.privateinvest.aitraderpro.navigation.SelectedAssetStore
 import com.privateinvest.aitraderpro.repository.MarketRepository
@@ -67,6 +68,8 @@ class BrokerViewModel(
     private val repository: MarketRepository,
     private val securityRepository: SecurityRepository
 ) : ViewModel() {
+
+    private val strategyRepo get() = ServiceLocator.strategyMonitoringRepository
 
     private val _uiState = MutableStateFlow(BrokerUiState())
     val uiState: StateFlow<BrokerUiState> = _uiState.asStateFlow()
@@ -149,21 +152,47 @@ class BrokerViewModel(
             when (state.brokerMode) {
                 BrokerMode.SIMULATION -> {
                     val success = repository.confirmSimulationOrder(state.symbol)
+                    if (success) {
+                        // Suivi stratégique automatique après achat simulation
+                        runCatching {
+                            strategyRepo.createFollowUp(
+                                symbol = state.symbol,
+                                name = state.name,
+                                mode = "SIMULATION"
+                            )
+                        }
+                    }
                     _uiState.value = _uiState.value.copy(
                         orderResult = if (success)
-                            "Ordre simulé enregistré. Suivi J+1/J+7/J+30 démarré pour ${state.symbol}."
+                            "Ordre simulé enregistré. Suivi J+1/J+7/J+30 démarré. Suivi stratégique actif : l'application t'alertera sans jamais vendre automatiquement."
                         else
                             "Impossible d'enregistrer l'ordre simulé (données insuffisantes)."
                     )
                 }
                 BrokerMode.PAPER_TRADING -> {
+                    // Suivi stratégique automatique après achat paper trading
+                    runCatching {
+                        strategyRepo.createFollowUp(
+                            symbol = state.symbol,
+                            name = state.name,
+                            mode = "PAPER"
+                        )
+                    }
                     _uiState.value = _uiState.value.copy(
-                        orderResult = "Ordre paper trading envoyé : ${String.format("%.0f", state.estimatedQuantity)} × ${state.symbol} pour ${formatMoney(state.totalAmount)}. (Connexion broker non encore configurée)"
+                        orderResult = "Ordre paper trading envoyé : ${String.format("%.0f", state.estimatedQuantity)} × ${state.symbol} pour ${formatMoney(state.totalAmount)}. Suivi stratégique activé. (Connexion broker non encore configurée)"
                     )
                 }
                 BrokerMode.REEL -> {
+                    // Suivi stratégique automatique après achat réel — PIN/empreinte déjà validés par l'UI
+                    runCatching {
+                        strategyRepo.createFollowUp(
+                            symbol = state.symbol,
+                            name = state.name,
+                            mode = "REEL"
+                        )
+                    }
                     _uiState.value = _uiState.value.copy(
-                        orderResult = "Ordre RÉEL soumis : ${String.format("%.0f", state.estimatedQuantity)} × ${state.symbol} pour ${formatMoney(state.totalAmount)}. (Connexion broker non encore configurée)"
+                        orderResult = "Ordre RÉEL soumis : ${String.format("%.0f", state.estimatedQuantity)} × ${state.symbol} pour ${formatMoney(state.totalAmount)}. Suivi stratégique activé. Alerte manuelle garantie. (Connexion broker non encore configurée)"
                     )
                 }
             }

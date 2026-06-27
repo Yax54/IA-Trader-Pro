@@ -154,3 +154,28 @@ data class DecisionLogEntity(
     val decision: String,
     val weightsUsed: String
 )
+
+@Entity(tableName = "strategy_followups")
+data class StrategyFollowUpEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val symbol: String,
+    val name: String,
+    val strategyType: String,
+    val strategyLabel: String,
+    val mode: String,                  // SIMULATION / PAPER / REEL
+    val entryPrice: Double,
+    val currentPrice: Double,
+    val targetPercent: Double,
+    val stopPercent: Double,
+    val maxHoldingDays: Int,
+    val openedAt: Long,
+    val lastCheckedAt: Long,
+    val lastAlertAt: Long = 0L,
+    val status: String,                // ACTIVE / SELL_ALERT / CLOSED
+    val alertReason: String? = null,
+    val alertStatus: String? = null,   // OK / ATTENTION_PERMISSION / null
+    // Historique de clôture
+    val closedAt: Long? = null,
+    val closedReason: String? = null,
+    val finalPerformancePercent: Double? = null
+)

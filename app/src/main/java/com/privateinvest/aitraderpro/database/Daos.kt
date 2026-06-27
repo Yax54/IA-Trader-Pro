@@ -188,3 +188,33 @@ interface DecisionLogDao {
     @Insert(onConflict = OnConflictStrategy.REPLACE)
     suspend fun insert(item: DecisionLogEntity)
 }
+
+@Dao
+interface StrategyFollowUpDao {
+    @Query("SELECT * FROM strategy_followups ORDER BY openedAt DESC")
+    suspend fun getAll(): List<StrategyFollowUpEntity>
+
+    @Query("SELECT * FROM strategy_followups WHERE status = 'ACTIVE' OR status = 'SELL_ALERT' ORDER BY openedAt DESC")
+    suspend fun getActive(): List<StrategyFollowUpEntity>
+
+    @Query("SELECT * FROM strategy_followups WHERE status = 'CLOSED' ORDER BY closedAt DESC")
+    suspend fun getClosed(): List<StrategyFollowUpEntity>
+
+    @Query("SELECT * FROM strategy_followups WHERE id = :id LIMIT 1")
+    suspend fun findById(id: Long): StrategyFollowUpEntity?
+
+    @Query("SELECT * FROM strategy_followups WHERE status = 'SELL_ALERT' ORDER BY openedAt DESC")
+    suspend fun getSellAlerts(): List<StrategyFollowUpEntity>
+
+    @Query("SELECT COUNT(*) FROM strategy_followups WHERE status = 'SELL_ALERT'")
+    suspend fun countAlerts(): Int
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(item: StrategyFollowUpEntity): Long
+
+    @Update
+    suspend fun update(item: StrategyFollowUpEntity)
+
+    @Query("DELETE FROM strategy_followups WHERE id = :id")
+    suspend fun deleteById(id: Long)
+}

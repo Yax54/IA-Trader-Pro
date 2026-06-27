@@ -1,6 +1,8 @@
 package com.privateinvest.aitraderpro.ui.screens
 
+import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -41,11 +43,15 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.privateinvest.aitraderpro.navigation.SelectedAssetStore
 import com.privateinvest.aitraderpro.repository.BeginnerExplanation
 import com.privateinvest.aitraderpro.repository.BeginnerSignalSummary
+import com.privateinvest.aitraderpro.repository.OpportunityStrategy
+import com.privateinvest.aitraderpro.repository.OpportunityStrategyEngine
+import com.privateinvest.aitraderpro.repository.OpportunityStrategyType
 import com.privateinvest.aitraderpro.ui.theme.SoftWhite
 import com.privateinvest.aitraderpro.ui.theme.Success
 import com.privateinvest.aitraderpro.ui.theme.Warning
@@ -56,9 +62,10 @@ import com.privateinvest.aitraderpro.viewmodel.SettingsViewModel
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AssetDetailScreen(
-    onBack: () -> Unit = {},           // R-10 : bouton retour
+    onBack: () -> Unit = {},
     onOpenAssistant: () -> Unit = {},
-    onOpenBroker: () -> Unit = {}
+    onOpenBroker: () -> Unit = {},
+    onOpenStrategyMonitoring: () -> Unit = {}
 ) {
     val viewModel: AssetDetailViewModel = viewModel(factory = AITraderViewModelFactory)
     val settingsViewModel: SettingsViewModel = viewModel(factory = AITraderViewModelFactory)
@@ -66,12 +73,53 @@ fun AssetDetailScreen(
     val statusMessage by viewModel.statusMessage.collectAsStateWithLifecycle()
     val beginnerModeEnabled by settingsViewModel.beginnerModeEnabled.collectAsStateWithLifecycle()
     var showAdvanced by rememberSaveable { mutableStateOf(false) }
+    // Stratégies : calculées en mémoire dès que detail est disponible
+    var expandedStrategyType by remember { mutableStateOf<OpportunityStrategyType?>(null) }
+    var showFollowUpConfirm by remember { mutableStateOf<OpportunityStrategy?>(null) }
 
     // R-04 : état du dialog de confirmation d'achat simulé
     var showConfirmDialog by remember { mutableStateOf(false) }
 
     LaunchedEffect(beginnerModeEnabled) {
         showAdvanced = !beginnerModeEnabled
+    }
+
+    // Dialog de confirmation de suivi intelligent
+    showFollowUpConfirm?.let { strategy ->
+        AlertDialog(
+            onDismissRequest = { showFollowUpConfirm = null },
+            title = { Text("${strategy.type.emoji} Activer le suivi ?") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Stratégie : ${strategy.type.label}")
+                    Text("Horizon : ${strategy.horizon}")
+                    Text("Objectif : +${strategy.targetGainPercent} %   Stop : -${strategy.stopLossPercent} %")
+                    Text(
+                        "L'application t'alertera quand une vente devient intéressante. Elle ne vend jamais automatiquement.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = Color.LightGray
+                    )
+                }
+            },
+            confirmButton = {
+                PremiumActionButton(
+                    text = "Activer le suivi",
+                    onClick = {
+                        viewModel.createFollowUp(
+                            symbol = SelectedAssetStore.currentSymbol,
+                            name = SelectedAssetStore.currentName,
+                            mode = "SIMULATION",
+                            preferredType = strategy.type
+                        )
+                        showFollowUpConfirm = null
+                        onOpenStrategyMonitoring()
+                    }
+                )
+            },
+            dismissButton = {
+                TextButton(onClick = { showFollowUpConfirm = null }) { Text("Annuler") }
+            }
+        )
     }
 
     // R-04 : dialog de confirmation avant achat simulé
@@ -208,6 +256,21 @@ fun AssetDetailScreen(
                             }
                         }
 
+                        // Carte Profils compatibles (calcul moteur stratégies)
+                        val strategies = remember(detail) {
+                            detail?.let { OpportunityStrategyEngine.classify(it) } ?: emptyList()
+                        }
+                        if (strategies.isNotEmpty()) {
+                            StrategyProfilesCard(
+                                strategies = strategies,
+                                expandedType = expandedStrategyType,
+                                onToggle = { type ->
+                                    expandedStrategyType = if (expandedStrategyType == type) null else type
+                                },
+                                onStartFollowUp = { strategy -> showFollowUpConfirm = strategy }
+                            )
+                        }
+
                         // R-04 : bouton ouvre le dialog au lieu de valider directement
                         PremiumActionButton(
                             text = "Valider l'ordre en simulation",
@@ -221,6 +284,94 @@ fun AssetDetailScreen(
                                 style = MaterialTheme.typography.bodyMedium,
                                 color = SoftWhite
                             )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun StrategyProfilesCard(
+    strategies: List<OpportunityStrategy>,
+    expandedType: OpportunityStrategyType?,
+    onToggle: (OpportunityStrategyType) -> Unit,
+    onStartFollowUp: (OpportunityStrategy) -> Unit
+) {
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = Color(0xFF1A2E45)),
+        shape = RoundedCornerShape(20.dp)
+    ) {
+        Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(10.dp)) {
+            Text(
+                "Profils compatibles",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                color = Color.White
+            )
+            Text(
+                "Clique sur un profil pour comprendre la stratégie. Appuie sur Surveiller pour activer le suivi.",
+                style = MaterialTheme.typography.bodySmall,
+                color = SoftWhite
+            )
+            strategies.forEach { strategy ->
+                val isExpanded = expandedType == strategy.type
+                val compatColor = when {
+                    strategy.compatibility >= 80 -> Success
+                    strategy.compatibility >= 65 -> Warning
+                    else -> PremiumBlue
+                }
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onToggle(strategy.type) },
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (isExpanded) Color(0xFF243447) else Color(0xFF132238)
+                    ),
+                    shape = RoundedCornerShape(14.dp)
+                ) {
+                    Column(Modifier.padding(12.dp), verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                        Row(
+                            Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Row(verticalAlignment = Alignment.CenterVertically, horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                                Text(strategy.type.emoji, fontSize = 20.sp)
+                                Column {
+                                    Text(strategy.type.label, color = Color.White, fontWeight = FontWeight.SemiBold, style = MaterialTheme.typography.bodyMedium)
+                                    Text(strategy.horizon, color = PremiumMuted, style = MaterialTheme.typography.bodySmall)
+                                }
+                            }
+                            Box(
+                                modifier = Modifier
+                                    .background(compatColor.copy(alpha = 0.2f), RoundedCornerShape(999.dp))
+                                    .padding(horizontal = 10.dp, vertical = 4.dp)
+                            ) {
+                                Text("${strategy.compatibility} %", color = compatColor, fontWeight = FontWeight.Bold, style = MaterialTheme.typography.labelSmall)
+                            }
+                        }
+                        AnimatedVisibility(visible = isExpanded) {
+                            Column(verticalArrangement = Arrangement.spacedBy(6.dp)) {
+                                Text(strategy.beginnerExplanation, color = SoftWhite, style = MaterialTheme.typography.bodySmall)
+                                Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                                    Text("Objectif : +${strategy.targetGainPercent} %", color = Success, style = MaterialTheme.typography.labelSmall)
+                                    Text("Stop : -${strategy.stopLossPercent} %", color = DangerRed, style = MaterialTheme.typography.labelSmall)
+                                }
+                                strategy.reasons.forEach { reason ->
+                                    Text("• $reason", color = PremiumMuted, style = MaterialTheme.typography.bodySmall)
+                                }
+                                Text(strategy.whatAppDoes, color = PremiumBlue, style = MaterialTheme.typography.bodySmall)
+                                if (strategy.type != OpportunityStrategyType.DEFENSIVE) {
+                                    PremiumActionButton(
+                                        text = "🔔 Surveiller",
+                                        onClick = { onStartFollowUp(strategy) },
+                                        modifier = Modifier.fillMaxWidth()
+                                    )
+                                }
+                            }
                         }
                     }
                 }

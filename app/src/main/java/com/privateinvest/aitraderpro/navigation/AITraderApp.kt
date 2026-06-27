@@ -49,6 +49,7 @@ import com.privateinvest.aitraderpro.ui.screens.RiskScreen
 import com.privateinvest.aitraderpro.ui.screens.SecurityCenterScreen
 import com.privateinvest.aitraderpro.ui.screens.SignalAssistantScreen
 import com.privateinvest.aitraderpro.ui.screens.StatsCenterScreen
+import com.privateinvest.aitraderpro.ui.screens.StrategyMonitoringScreen
 import com.privateinvest.aitraderpro.ui.screens.TopOpportunitiesScreen
 import com.privateinvest.aitraderpro.ui.screens.TradingModeBanner
 import com.privateinvest.aitraderpro.ui.screens.WatchlistScreen
@@ -153,7 +154,8 @@ fun AITraderApp() {
                     AssetDetailScreen(
                         onBack = { navController.popBackStack() },
                         onOpenAssistant = { navController.navigate(AppDestination.SignalAssistant.route) },
-                        onOpenBroker = { openBroker(SelectedAssetStore.currentSymbol, SelectedAssetStore.currentName) }
+                        onOpenBroker = { openBroker(SelectedAssetStore.currentSymbol, SelectedAssetStore.currentName) },
+                        onOpenStrategyMonitoring = { navController.navigate(AppDestination.StrategyMonitoring.route) }
                     )
                 }
                 composable(AppDestination.SignalAssistant.route) {
@@ -180,6 +182,13 @@ fun AITraderApp() {
                     BrokerAssistantScreen(
                         onBack = { navController.popBackStack() },
                         onNavigateToSecurity = { navController.navigate(AppDestination.SecurityCenter.route) }
+                    )
+                }
+                // MODULE STRATÉGIES + SUIVI INTELLIGENT
+                composable(AppDestination.StrategyMonitoring.route) {
+                    StrategyMonitoringScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenAsset = ::openAsset
                     )
                 }
             }

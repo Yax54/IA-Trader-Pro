@@ -17,6 +17,8 @@ import com.privateinvest.aitraderpro.viewmodel.MarketDataCenterViewModel
 import com.privateinvest.aitraderpro.viewmodel.RealValidationViewModel
 import com.privateinvest.aitraderpro.viewmodel.StrategyMonitoringViewModel
 import com.privateinvest.aitraderpro.viewmodel.TopOpportunitiesViewModel
+import com.privateinvest.aitraderpro.viewmodel.MarketPlaceViewModel
+import com.privateinvest.aitraderpro.viewmodel.OperationModeViewModel
 
 object AITraderViewModelFactory : ViewModelProvider.Factory {
     private val repository: MarketRepository get() = ServiceLocator.marketRepository
@@ -47,6 +49,8 @@ object AITraderViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(MarketDataCenterViewModel::class.java) -> MarketDataCenterViewModel(ServiceLocator.marketDataConnectionRepository) as T
             modelClass.isAssignableFrom(ControlCenterViewModel::class.java) -> ControlCenterViewModel() as T
             modelClass.isAssignableFrom(RealValidationViewModel::class.java) -> RealValidationViewModel() as T
+            modelClass.isAssignableFrom(OperationModeViewModel::class.java) -> OperationModeViewModel(ServiceLocator.operationModeRepository) as T
+            modelClass.isAssignableFrom(MarketPlaceViewModel::class.java) -> MarketPlaceViewModel(ServiceLocator.marketFiltersRepository) as T
             else -> throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
         }
     }

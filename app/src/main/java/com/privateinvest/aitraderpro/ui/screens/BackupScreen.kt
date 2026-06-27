@@ -32,7 +32,7 @@ fun BackupScreen() {
     }
 
     LazyColumn(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
-        item { PremiumScreenTitle("Sauvegarde", "Exporter la mémoire IA, les poids et la simulation") }
+        item { PremiumScreenTitle("Sauvegarde", "Exporter la mémoire IA, les poids, la simulation et les préférences") }
         item { SafetyBanner("Avant chaque grosse modification, fais une sauvegarde de la mémoire IA.") }
 
         state.summary?.let { summary ->
@@ -42,6 +42,8 @@ fun BackupScreen() {
                     RowLine("Mémoire IA", summary.memoryCount.toString())
                     RowLine("Trades simulation", summary.tradeCount.toString())
                     RowLine("Favoris", summary.favoriteCount.toString())
+                    RowLine("Modes", "LIVE / Surveillance / Veille inclus")
+                    RowLine("Place du marché", "Filtres et recherche inclus")
                     Text("Aperçu JSON :", modifier = Modifier.padding(top = 12.dp))
                     Text(summary.jsonPreview, modifier = Modifier.padding(top = 8.dp))
                 }
@@ -62,7 +64,7 @@ fun BackupScreen() {
 
         item {
             PremiumCardBox("Sécurité sauvegarde", "Contrôle d'intégrité") {
-                Text("Le JSON contient un compteur de signaux, mémoire, trades, favoris et poids pour vérifier que l'export n'est pas vide.")
+                Text("Le JSON contient signaux, mémoire, trades, favoris, poids, modes de fonctionnement et filtres Place du marché pour vérifier que l'export n'est pas vide.")
                 Text("Sécurité : le PIN, son hash et son sel ne doivent jamais être exportés. Après restauration sur un autre téléphone, un nouveau PIN devra être créé.", modifier = Modifier.padding(top = 8.dp))
                 Text("Conseil : conserve une sauvegarde avant chaque nouvelle version APK.", modifier = Modifier.padding(top = 8.dp))
             }

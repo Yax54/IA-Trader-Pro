@@ -34,6 +34,7 @@ import com.privateinvest.aitraderpro.ui.theme.Success
 import com.privateinvest.aitraderpro.ui.theme.Warning
 import com.privateinvest.aitraderpro.viewmodel.AITraderViewModelFactory
 import com.privateinvest.aitraderpro.viewmodel.DashboardViewModel
+import com.privateinvest.aitraderpro.viewmodel.OperationModeViewModel
 import com.privateinvest.aitraderpro.viewmodel.SettingsViewModel
 
 @Composable
@@ -41,12 +42,15 @@ fun DashboardScreen(
     onOpenRisk: () -> Unit,
     onOpenAdmin: () -> Unit,
     onOpenAsset: (String, String) -> Unit,
-    onOpenCockpit: () -> Unit
+    onOpenCockpit: () -> Unit,
+    onOpenOperationMode: () -> Unit
 ) {
     val viewModel: DashboardViewModel = viewModel(factory = AITraderViewModelFactory)
     val settingsViewModel: SettingsViewModel = viewModel(factory = AITraderViewModelFactory)
+    val operationModeViewModel: OperationModeViewModel = viewModel(factory = AITraderViewModelFactory)
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val beginnerModeEnabled by settingsViewModel.beginnerModeEnabled.collectAsStateWithLifecycle()
+    val operationSettings by operationModeViewModel.settings.collectAsStateWithLifecycle()
 
     // A2 : Bouton refresh premium
     LazyColumn(
@@ -69,16 +73,28 @@ fun DashboardScreen(
                         subtitle = if (beginnerModeEnabled) "Mode débutant actif" else "Mode expert actif"
                     )
                 }
-                Text(
-                    text = "🧠 Cockpit IA",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier
-                        .background(PremiumBlue, RoundedCornerShape(999.dp))
-                        .clickable { onOpenCockpit() }
-                        .padding(horizontal = 14.dp, vertical = 9.dp)
-                )
+                Column(horizontalAlignment = Alignment.End, verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text(
+                        text = "🧠 Cockpit IA",
+                        color = Color.White,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .background(PremiumBlue, RoundedCornerShape(999.dp))
+                            .clickable { onOpenCockpit() }
+                            .padding(horizontal = 14.dp, vertical = 9.dp)
+                    )
+                    Text(
+                        text = operationSettings.mode.shortLabel,
+                        color = Color.White,
+                        fontSize = 15.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier
+                            .background(scoreColor(if (operationSettings.mode.name == "VEILLE") 45 else 85), RoundedCornerShape(999.dp))
+                            .clickable { onOpenOperationMode() }
+                            .padding(horizontal = 14.dp, vertical = 8.dp)
+                    )
+                }
             }
         }
 

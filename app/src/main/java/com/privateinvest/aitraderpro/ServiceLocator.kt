@@ -12,6 +12,8 @@ import com.privateinvest.aitraderpro.repository.MarketDataConnectionRepository
 import com.privateinvest.aitraderpro.repository.MarketRepository
 import com.privateinvest.aitraderpro.repository.MarketRepositoryImpl
 import com.privateinvest.aitraderpro.repository.AiForecastRepository
+import com.privateinvest.aitraderpro.repository.MarketFiltersRepository
+import com.privateinvest.aitraderpro.repository.OperationModeRepository
 import com.privateinvest.aitraderpro.repository.StrategyMonitoringRepository
 import com.privateinvest.aitraderpro.repository.UserPreferencesRepository
 import com.privateinvest.aitraderpro.repository.SecurityRepository
@@ -89,6 +91,14 @@ object ServiceLocator {
 
     val backupSafetyRepository: BackupSafetyRepository by lazy {
         BackupSafetyRepository(appContext)
+    }
+
+    val operationModeRepository: OperationModeRepository by lazy {
+        OperationModeRepository(appContext)
+    }
+
+    val marketFiltersRepository: MarketFiltersRepository by lazy {
+        MarketFiltersRepository(appContext)
     }
 
     val marketDataConnectionRepository: MarketDataConnectionRepository by lazy {

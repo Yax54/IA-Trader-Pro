@@ -261,6 +261,9 @@ class UltimateRepository(
             appendLine("    \"weights\": ${weights.size}")
             appendLine("  },")
             appendLine("  \"favorites\": [${favorites.joinToString { "\"${it.symbol}\"" }}],")
+            appendLine("  \"operationMode\": ${ServiceLocator.operationModeRepository.exportSnapshot().prependIndent("  ").trim()},")
+            appendLine("  \"marketFilters\": ${ServiceLocator.marketFiltersRepository.exportSnapshot().prependIndent("  ").trim()},")
+            appendLine("  \"v15\": { \"includes\": [\"operation_mode\", \"market_place_filters\", \"sync_preferences\"] },")
             appendLine("  \"integrity\": \"${signals.size}-${memories.size}-${trades.size}-${favorites.size}-${weights.size}\"")
             appendLine("}")
         }

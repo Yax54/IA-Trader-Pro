@@ -42,8 +42,10 @@ import com.privateinvest.aitraderpro.ui.screens.HealthScreen
 import com.privateinvest.aitraderpro.ui.screens.InstallTestScreen
 import com.privateinvest.aitraderpro.ui.screens.JournalIAScreen
 import com.privateinvest.aitraderpro.ui.screens.LoginScreen
+import com.privateinvest.aitraderpro.ui.screens.MarketPlaceScreen
 import com.privateinvest.aitraderpro.ui.screens.MoreScreen
 import com.privateinvest.aitraderpro.ui.screens.MultiPortfolioScreen
+import com.privateinvest.aitraderpro.ui.screens.OperationModeScreen
 import com.privateinvest.aitraderpro.ui.screens.OnboardingScreen
 import com.privateinvest.aitraderpro.ui.screens.PortfolioScreen
 import com.privateinvest.aitraderpro.ui.screens.PreferencesCenterScreen
@@ -135,7 +137,8 @@ fun AITraderApp() {
                         onOpenRisk = { navController.navigate(AppDestination.Risk.route) },
                         onOpenAdmin = { navController.navigate(AppDestination.Admin.route) },
                         onOpenAsset = ::openAsset,
-                        onOpenCockpit = { navController.navigate(AppDestination.ControlCenter.route) }
+                        onOpenCockpit = { navController.navigate(AppDestination.ControlCenter.route) },
+                        onOpenOperationMode = { navController.navigate(AppDestination.OperationMode.route) }
                     )
                 }
                 composable(AppDestination.TopOpportunities.route) {
@@ -215,6 +218,18 @@ fun AITraderApp() {
                     RealValidationScreen(
                         onBack = { navController.popBackStack() },
                         onNavigate = { route -> navController.navigate(route) }
+                    )
+                }
+                // MODULE V1.5 : modes LIVE / SURVEILLANCE / VEILLE
+                composable(AppDestination.OperationMode.route) {
+                    OperationModeScreen(onBack = { navController.popBackStack() })
+                }
+                // MODULE V1.5 : Place du marché premium
+                composable(AppDestination.MarketPlace.route) {
+                    MarketPlaceScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenAsset = ::openAsset,
+                        onOpenBroker = ::openBroker
                     )
                 }
             }

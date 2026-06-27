@@ -34,4 +34,7 @@ sealed class AppDestination(val route: String, val label: String) {
     // V1.4 : Centre de Contrôle Intelligent + Validation Réelle
     data object ControlCenter : AppDestination("control_center", "Cockpit IA")
     data object RealValidation : AppDestination("real_validation", "Validation Réelle")
+    // V1.5 : fonctionnement + Place du marché
+    data object OperationMode : AppDestination("operation_mode", "Synchronisation")
+    data object MarketPlace : AppDestination("market_place", "Place du marché")
 }

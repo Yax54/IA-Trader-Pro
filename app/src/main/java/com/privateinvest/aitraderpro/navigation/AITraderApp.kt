@@ -99,6 +99,7 @@ fun AITraderApp() {
     Scaffold(
         bottomBar = {
             val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+            // Barre visible sur toutes les routes sauf Login (conservé pour accès manuel)
             if (currentRoute != AppDestination.Login.route) {
                 NavigationBar {
                     bottomItems.forEach { item ->
@@ -127,7 +128,7 @@ fun AITraderApp() {
             }
             NavHost(
                 navController = navController,
-                startDestination = AppDestination.Login.route,
+                startDestination = AppDestination.Dashboard.route,
                 modifier = Modifier.weight(1f)
             ) {
                 composable(AppDestination.Login.route) {

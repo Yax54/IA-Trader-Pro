@@ -49,6 +49,9 @@ fun DashboardScreen(
     val beginnerModeEnabled by settingsViewModel.beginnerModeEnabled.collectAsStateWithLifecycle()
     val operationSettings by operationModeViewModel.settings.collectAsStateWithLifecycle()
 
+    // V1.7 : Dialog bienvenue au premier lancement (s'affiche 1 seule fois)
+    WelcomeDialogHost()
+
     // A2 : Bouton refresh premium
     LazyColumn(
         modifier = Modifier

@@ -218,6 +218,29 @@ fun SafetyBanner(text: String = "Mode réel verrouillé : simulation uniquement,
 }
 
 fun scoreColor(score: Int): Color = when { score >= 75 -> Success; score >= 55 -> Warning; else -> DangerRed }
+
+/**
+ * strategyColor — V1.7 Couleurs constantes par catégorie de stratégie.
+ *
+ * Identité visuelle permanente :
+ *   🟢 QUICK        → vert  (#22C55E) — Opportunité rapide
+ *   🔵 SWING        → bleu  (#38BDF8) — Swing trading
+ *   🟣 LONG_TERM    → violet (#A855F7) — Long terme
+ *   🟠 HIGH_VOLATILITY → orange (#F97316) — Volatilité
+ *   🟡 GROWTH       → jaune (#EAB308) — Croissance / Dividendes
+ *   ⚫ DEFENSIVE    → gris  (#94A3B8) — Défensif / sécurisé
+ *
+ * Utilisation : accent = strategyColor(forecast.strategyType)
+ */
+fun strategyColor(type: String): Color = when (type.uppercase()) {
+    "QUICK"           -> Color(0xFF22C55E)   // 🟢 Opportunité rapide
+    "SWING"           -> Color(0xFF38BDF8)   // 🔵 Swing
+    "LONG_TERM"       -> Color(0xFFA855F7)   // 🟣 Long terme
+    "HIGH_VOLATILITY" -> Color(0xFFF97316)   // 🟠 Volatilité
+    "GROWTH"          -> Color(0xFFEAB308)   // 🟡 Croissance / Dividendes
+    "DEFENSIVE"       -> Color(0xFF94A3B8)   // ⚫ Défensif
+    else              -> Color(0xFF38BDF8)   // bleu premium par défaut
+}
 fun Double.formatPercent(): String = if (this >= 0) "+${String.format(java.util.Locale.FRANCE, "%.2f", this)} %" else "${String.format(java.util.Locale.FRANCE, "%.2f", this)} %"
 fun Double.formatPlainPercent(): String = String.format(java.util.Locale.FRANCE, "%.1f %%", this)
 fun Int.clampPercent(): Int = coerceIn(0, 100)

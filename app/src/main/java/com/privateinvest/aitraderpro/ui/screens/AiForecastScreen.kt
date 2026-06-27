@@ -2,6 +2,8 @@ package com.privateinvest.aitraderpro.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -201,20 +203,28 @@ private fun ForecastCard(
     onPlayed: () -> Unit,
     onIgnored: () -> Unit
 ) {
-    val statusAccent = when {
-        forecast.status.equals("HIT_TARGET", true) -> Success
-        forecast.status.equals("HIT_STOP", true) -> DangerRed
-        forecast.status.equals("EXPIRED", true) -> Warning
-        else -> PremiumBlue
-    }
+    // V1.7 : accent = couleur fixe par catégorie de stratégie (identité visuelle constante)
+    val stratAccent = strategyColor(forecast.strategyType)
     PremiumCardBox(
         title = "${forecast.symbol} — ${forecast.name}",
         subtitle = "${strategyEmoji(forecast.strategyType)} ${forecast.strategyLabel} · ${forecast.status}",
-        accent = statusAccent,
+        accent = stratAccent,
         modifier = Modifier.clickable { onOpen() }
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SignalBadge(forecast.strategyLabel.take(18))
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            // Badge stratégie avec couleur fixe de catégorie
+            Box(
+                modifier = Modifier
+                    .background(stratAccent.copy(alpha = 0.20f), RoundedCornerShape(999.dp))
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = "${strategyEmoji(forecast.strategyType)} ${forecast.strategyLabel.take(16)}",
+                    color = stratAccent,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
             Text("${forecast.score} / 100", color = SoftWhite, fontSize = 24.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(10.dp))

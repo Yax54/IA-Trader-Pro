@@ -106,13 +106,22 @@ fun ForecastDetailScreen(
 
 @Composable
 private fun ForecastHeader(forecast: AiForecastEntity) {
+    // V1.7 : accent = couleur fixe par catégorie de stratégie
+    val stratAccent = strategyColor(forecast.strategyType)
     PremiumCardBox(
         title = "${forecast.symbol} — ${forecast.name}",
         subtitle = "${strategyLabel(forecast.strategyType)} · ${forecast.status}",
-        accent = scoreColor(forecast.score)
+        accent = stratAccent
     ) {
-        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
-            SignalBadge(forecast.strategyLabel)
+        Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+            // Badge catégorie avec couleur constante
+            androidx.compose.foundation.layout.Box(
+                modifier = androidx.compose.ui.Modifier
+                    .background(stratAccent.copy(alpha = 0.18f), androidx.compose.foundation.shape.RoundedCornerShape(999.dp))
+                    .padding(horizontal = 14.dp, vertical = 7.dp)
+            ) {
+                Text(forecast.strategyLabel, color = stratAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold)
+            }
             Text("${forecast.score}/100", color = SoftWhite, fontSize = 34.sp, fontWeight = FontWeight.Bold)
         }
         Spacer(Modifier.height(12.dp))

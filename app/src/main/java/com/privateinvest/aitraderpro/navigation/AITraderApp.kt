@@ -54,6 +54,7 @@ import com.privateinvest.aitraderpro.ui.screens.SecurityCenterScreen
 import com.privateinvest.aitraderpro.ui.screens.SignalAssistantScreen
 import com.privateinvest.aitraderpro.ui.screens.StatsCenterScreen
 import com.privateinvest.aitraderpro.ui.screens.AiForecastScreen
+import com.privateinvest.aitraderpro.ui.screens.ForecastDetailScreen
 import com.privateinvest.aitraderpro.ui.screens.MarketDataCenterScreen
 import com.privateinvest.aitraderpro.ui.screens.StrategyMonitoringScreen
 import com.privateinvest.aitraderpro.ui.screens.TopOpportunitiesScreen
@@ -199,9 +200,24 @@ fun AITraderApp() {
                         onOpenAsset = ::openAsset
                     )
                 }
-                // MODULE PRONOSTICS IA + MÉMOIRE GLISSANTE
+                // MODULE PRONOSTICS IA PREMIUM + MÉMOIRE / ARCHIVES V1.6
                 composable(AppDestination.AiForecasts.route) {
-                    AiForecastScreen(onBack = { navController.popBackStack() })
+                    AiForecastScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenForecastDetail = { id ->
+                            SelectedForecastStore.currentForecastId = id
+                            navController.navigate(AppDestination.ForecastDetail.route)
+                        },
+                        onOpenAsset = ::openAsset,
+                        onOpenBroker = ::openBroker
+                    )
+                }
+                composable(AppDestination.ForecastDetail.route) {
+                    ForecastDetailScreen(
+                        onBack = { navController.popBackStack() },
+                        onOpenAsset = ::openAsset,
+                        onOpenBroker = ::openBroker
+                    )
                 }
                 // MODULE CENTRE DONNÉES MARCHÉ
                 composable(AppDestination.MarketDataCenter.route) {

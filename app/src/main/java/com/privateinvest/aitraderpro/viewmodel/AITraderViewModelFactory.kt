@@ -12,6 +12,7 @@ import com.privateinvest.aitraderpro.viewmodel.MultiPortfolioViewModel
 import com.privateinvest.aitraderpro.viewmodel.DailyReportViewModel
 import com.privateinvest.aitraderpro.viewmodel.OnboardingViewModel
 import com.privateinvest.aitraderpro.viewmodel.AiForecastViewModel
+import com.privateinvest.aitraderpro.viewmodel.ForecastDetailViewModel
 import com.privateinvest.aitraderpro.viewmodel.ControlCenterViewModel
 import com.privateinvest.aitraderpro.viewmodel.MarketDataCenterViewModel
 import com.privateinvest.aitraderpro.viewmodel.RealValidationViewModel
@@ -46,6 +47,7 @@ object AITraderViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(TopOpportunitiesViewModel::class.java) -> TopOpportunitiesViewModel() as T
             modelClass.isAssignableFrom(StrategyMonitoringViewModel::class.java) -> StrategyMonitoringViewModel() as T
             modelClass.isAssignableFrom(AiForecastViewModel::class.java) -> AiForecastViewModel() as T
+            modelClass.isAssignableFrom(ForecastDetailViewModel::class.java) -> ForecastDetailViewModel() as T
             modelClass.isAssignableFrom(MarketDataCenterViewModel::class.java) -> MarketDataCenterViewModel(ServiceLocator.marketDataConnectionRepository) as T
             modelClass.isAssignableFrom(ControlCenterViewModel::class.java) -> ControlCenterViewModel() as T
             modelClass.isAssignableFrom(RealValidationViewModel::class.java) -> RealValidationViewModel() as T

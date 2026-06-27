@@ -2,9 +2,11 @@ package com.privateinvest.aitraderpro.ui.screens
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
@@ -70,7 +72,7 @@ fun ForecastDetailScreen(
         }
 
         if (state.loading) {
-            androidx.compose.foundation.layout.Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator(color = PremiumBlue)
             }
             return@Column
@@ -115,9 +117,9 @@ private fun ForecastHeader(forecast: AiForecastEntity) {
     ) {
         Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
             // Badge catégorie avec couleur constante
-            androidx.compose.foundation.layout.Box(
-                modifier = androidx.compose.ui.Modifier
-                    .background(stratAccent.copy(alpha = 0.18f), androidx.compose.foundation.shape.RoundedCornerShape(999.dp))
+            Box(
+                modifier = Modifier
+                    .background(stratAccent.copy(alpha = 0.18f), RoundedCornerShape(999.dp))
                     .padding(horizontal = 14.dp, vertical = 7.dp)
             ) {
                 Text(forecast.strategyLabel, color = stratAccent, fontSize = 14.sp, fontWeight = FontWeight.Bold)

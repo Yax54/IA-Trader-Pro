@@ -2,6 +2,7 @@ package com.privateinvest.aitraderpro.ui.screens
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +22,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
@@ -34,18 +36,11 @@ import com.privateinvest.aitraderpro.ui.theme.SoftWhite
 private const val PREFS_NAME = "aitraderpro_welcome"
 private const val KEY_FIRST_LAUNCH = "first_launch_seen"
 
-/**
- * Vérifie si le dialog de bienvenue a déjà été affiché.
- * Retourne true uniquement au premier lancement.
- */
 fun isFirstLaunch(context: Context): Boolean {
     val prefs = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
     return !prefs.getBoolean(KEY_FIRST_LAUNCH, false)
 }
 
-/**
- * Marque le premier lancement comme vu. Appeler après affichage ou choix utilisateur.
- */
 fun markFirstLaunchSeen(context: Context) {
     context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
         .edit()
@@ -53,21 +48,6 @@ fun markFirstLaunchSeen(context: Context) {
         .apply()
 }
 
-/**
- * WelcomeDialog — Premier lancement uniquement.
- *
- * Affiche une fenêtre de bienvenue avec 3 choix simples :
- * - Découvrir l'application
- * - Commencer en simulation
- * - Connecter mon broker plus tard
- *
- * La fenêtre ne s'affiche qu'une seule fois (contrôle via SharedPreferences).
- * Après le choix, markFirstLaunchSeen() est appelé automatiquement.
- *
- * @param onDiscover    L'utilisateur veut découvrir l'app (reste sur Dashboard)
- * @param onSimulation  L'utilisateur veut démarrer en simulation
- * @param onLater       L'utilisateur connectera son broker plus tard
- */
 @Composable
 fun WelcomeDialog(
     onDiscover: () -> Unit,
@@ -89,7 +69,6 @@ fun WelcomeDialog(
                 modifier = Modifier.padding(28.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // En-tête
                 Text(
                     text = "🚀",
                     fontSize = 48.sp,
@@ -115,7 +94,6 @@ fun WelcomeDialog(
 
                 Spacer(Modifier.height(24.dp))
 
-                // Choix 1 — Découvrir
                 WelcomeChoiceButton(
                     emoji = "🔭",
                     title = "Découvrir l'application",
@@ -125,7 +103,6 @@ fun WelcomeDialog(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                // Choix 2 — Simulation
                 WelcomeChoiceButton(
                     emoji = "🎮",
                     title = "Commencer en simulation",
@@ -135,7 +112,6 @@ fun WelcomeDialog(
                 )
                 Spacer(Modifier.height(12.dp))
 
-                // Choix 3 — Plus tard
                 WelcomeChoiceButton(
                     emoji = "🔗",
                     title = "Connecter mon broker plus tard",
@@ -156,6 +132,8 @@ fun WelcomeDialog(
     }
 }
 
+// ⚠️ Utilise Box + clickable au lieu de Card(onClick=) pour éviter le crash
+// ExperimentalMaterial3Api sur certains appareils/versions
 @Composable
 private fun WelcomeChoiceButton(
     emoji: String,
@@ -164,21 +142,18 @@ private fun WelcomeChoiceButton(
     color: Color,
     onClick: () -> Unit
 ) {
-    Card(
+    Box(
         modifier = Modifier
-            .fillMaxWidth(),
-        shape = RoundedCornerShape(18.dp),
-        colors = CardDefaults.cardColors(containerColor = Color(0xFF1E314D)),
-        onClick = onClick
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(18.dp))
+            .background(Color(0xFF1E314D))
+            .clickable { onClick() }
+            .padding(16.dp)
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically,
             horizontalArrangement = Arrangement.spacedBy(14.dp)
         ) {
-            // Pastille colorée avec emoji
             Box(
                 modifier = Modifier
                     .background(color.copy(alpha = 0.18f), RoundedCornerShape(12.dp))
@@ -191,21 +166,11 @@ private fun WelcomeChoiceButton(
                 Text(title, fontSize = 15.sp, fontWeight = FontWeight.Bold, color = SoftWhite)
                 Text(subtitle, fontSize = 13.sp, color = PremiumMuted, lineHeight = 18.sp)
             }
-            // Flèche indicative
             Text("›", fontSize = 22.sp, color = color, fontWeight = FontWeight.Bold)
         }
     }
 }
 
-/**
- * Hook de composition pour gérer le WelcomeDialog depuis n'importe quel écran.
- * Utilise SharedPreferences pour ne s'afficher qu'une seule fois.
- *
- * Usage :
- * ```
- * WelcomeDialogHost()
- * ```
- */
 @Composable
 fun WelcomeDialogHost(
     onDiscover: () -> Unit = {},

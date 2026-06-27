@@ -81,6 +81,8 @@ dependencies {
     implementation("androidx.lifecycle:lifecycle-runtime-compose:2.8.3")
     implementation("org.jetbrains.kotlinx:kotlinx-coroutines-android:1.8.1")
     implementation("androidx.datastore:datastore-preferences:1.1.1")
+    implementation("androidx.biometric:biometric:1.1.0")
+    implementation("androidx.fragment:fragment-ktx:1.8.1")
 
     // Material Components pour le thème XML (Theme.MaterialComponents.DayNight.NoActionBar)
     implementation("com.google.android.material:material:1.12.0")

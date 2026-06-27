@@ -179,6 +179,32 @@ fun SimpleLineChart(
     }
 }
 
+
+@Composable
+fun TradingModeBanner(mode: String, modifier: Modifier = Modifier) {
+    val normalized = mode.uppercase()
+    val color = when {
+        normalized.contains("REAL") || normalized.contains("REEL") || normalized.contains("RÉEL") -> DangerRed
+        normalized.contains("PAPER") -> PremiumBlue
+        else -> Success
+    }
+    val label = when {
+        normalized.contains("REAL") || normalized.contains("REEL") || normalized.contains("RÉEL") -> "MODE RÉEL — opérations liées au broker"
+        normalized.contains("PAPER") -> "MODE PAPER TRADING — broker en démonstration"
+        else -> "MODE SIMULATION — aucun argent réel"
+    }
+    Text(
+        text = label,
+        color = Color.White,
+        fontSize = 16.sp,
+        fontWeight = FontWeight.Bold,
+        modifier = modifier
+            .fillMaxWidth()
+            .background(color, RoundedCornerShape(0.dp))
+            .padding(horizontal = 16.dp, vertical = 10.dp)
+    )
+}
+
 @Composable
 fun SafetyBanner(text: String = "Mode réel verrouillé : simulation uniquement, aucune opération automatique.") {
     PremiumCardBox("Sécurité", text, accent = Warning) {

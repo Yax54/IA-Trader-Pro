@@ -19,9 +19,10 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         FavoriteAssetEntity::class,
         PortfolioGoalEntity::class,
         WeightHistoryEntity::class,
-        DecisionLogEntity::class
+        DecisionLogEntity::class,
+        SecurityLogEntity::class
     ],
-    version = 4,
+    version = 5,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -38,6 +39,7 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun portfolioGoalDao(): PortfolioGoalDao
     abstract fun weightHistoryDao(): WeightHistoryDao
     abstract fun decisionLogDao(): DecisionLogDao
+    abstract fun securityLogDao(): SecurityLogDao
 
     companion object {
         val MIGRATION_1_2 = object : Migration(1, 2) {
@@ -148,5 +150,22 @@ abstract class AppDatabase : RoomDatabase() {
                 )
             }
         }
+
+        val MIGRATION_4_5 = object : Migration(4, 5) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS security_logs (
+                        id INTEGER PRIMARY KEY AUTOINCREMENT NOT NULL,
+                        event TEXT NOT NULL,
+                        level TEXT NOT NULL,
+                        details TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+            }
+        }
+
     }
 }

@@ -1,5 +1,7 @@
 package com.privateinvest.aitraderpro.navigation
 
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -13,6 +15,8 @@ import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavGraph.Companion.findStartDestination
@@ -38,13 +42,19 @@ import com.privateinvest.aitraderpro.ui.screens.LoginScreen
 import com.privateinvest.aitraderpro.ui.screens.MoreScreen
 import com.privateinvest.aitraderpro.ui.screens.PortfolioScreen
 import com.privateinvest.aitraderpro.ui.screens.RiskScreen
+import com.privateinvest.aitraderpro.ui.screens.SecurityCenterScreen
 import com.privateinvest.aitraderpro.ui.screens.SignalAssistantScreen
+import com.privateinvest.aitraderpro.ui.screens.TradingModeBanner
+import com.privateinvest.aitraderpro.viewmodel.AITraderViewModelFactory
+import com.privateinvest.aitraderpro.viewmodel.SecurityViewModel
 import com.privateinvest.aitraderpro.ui.screens.TopOpportunitiesScreen
 import com.privateinvest.aitraderpro.ui.screens.WatchlistScreen
 
 @Composable
 fun AITraderApp() {
     val navController = rememberNavController()
+    val securityViewModel: SecurityViewModel = viewModel(factory = AITraderViewModelFactory)
+    val securityUi = securityViewModel.uiState.collectAsStateWithLifecycle()
     val bottomItems = listOf(
         AppDestination.Dashboard,
         AppDestination.TopOpportunities,
@@ -90,11 +100,16 @@ fun AITraderApp() {
             }
         }
     ) { padding ->
-        NavHost(
-            navController = navController,
-            startDestination = AppDestination.Login.route,
-            modifier = Modifier.padding(padding)
-        ) {
+        val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
+        Column(Modifier.padding(padding).fillMaxSize()) {
+            if (currentRoute != AppDestination.Login.route) {
+                TradingModeBanner(mode = securityUi.value.state.tradingMode.name)
+            }
+            NavHost(
+                navController = navController,
+                startDestination = AppDestination.Login.route,
+                modifier = Modifier.weight(1f)
+            ) {
             composable(AppDestination.Login.route) {
                 LoginScreen(onLogin = { navController.navigate(AppDestination.Dashboard.route) })
             }
@@ -136,14 +151,17 @@ fun AITraderApp() {
             composable(AppDestination.Goals.route) { GoalsScreen() }
             composable(AppDestination.Backup.route) { BackupScreen() }
             composable(AppDestination.Exports.route) { ExportCenterScreen() }
+            composable(AppDestination.SecurityCenter.route) { SecurityCenterScreen() }
             // MODULE BROKER
             composable(AppDestination.BrokerAssistant.route) {
                 BrokerAssistantScreen(
-                    onBack = { navController.popBackStack() }
+                    onBack = { navController.popBackStack() },
+                    onNavigateToSecurity = { navController.navigate(AppDestination.SecurityCenter.route) }
                 )
             }
         }
     }
+}
 }
 
 // R-08 : icônes Material Icons

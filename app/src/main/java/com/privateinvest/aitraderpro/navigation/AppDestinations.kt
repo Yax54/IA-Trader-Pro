@@ -22,4 +22,5 @@ sealed class AppDestination(val route: String, val label: String) {
     data object Backup : AppDestination("backup", "Sauvegarde")
     data object Exports : AppDestination("exports", "Exports")
     data object BrokerAssistant : AppDestination("broker_assistant", "Assistant investissement")
+    data object SecurityCenter : AppDestination("security_center", "Sécurité")
 }

@@ -23,6 +23,7 @@ fun MoreScreen(onNavigate: (String) -> Unit) {
         "health" to "Santé IA",
         "goals" to "Objectifs",
         "backup" to "Sauvegarde",
+        "security_center" to "Sécurité",
         "exports" to "Exports PNG/PDF",
         "admin" to "Paramètres"
     )

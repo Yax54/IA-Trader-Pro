@@ -158,6 +158,19 @@ interface PortfolioGoalDao {
     suspend fun upsert(item: PortfolioGoalEntity)
 }
 
+
+@Dao
+interface SecurityLogDao {
+    @Query("SELECT * FROM security_logs ORDER BY createdAt DESC LIMIT :limit")
+    suspend fun getLatest(limit: Int = 100): List<SecurityLogEntity>
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(item: SecurityLogEntity): Long
+
+    @Query("DELETE FROM security_logs WHERE createdAt < :before")
+    suspend fun deleteOlderThan(before: Long)
+}
+
 @Dao
 interface WeightHistoryDao {
     @Query("SELECT * FROM weight_history ORDER BY recordedAt DESC")

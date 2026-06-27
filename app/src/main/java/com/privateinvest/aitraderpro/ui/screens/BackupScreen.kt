@@ -63,6 +63,7 @@ fun BackupScreen() {
         item {
             PremiumCardBox("Sécurité sauvegarde", "Contrôle d'intégrité") {
                 Text("Le JSON contient un compteur de signaux, mémoire, trades, favoris et poids pour vérifier que l'export n'est pas vide.")
+                Text("Sécurité : le PIN, son hash et son sel ne doivent jamais être exportés. Après restauration sur un autre téléphone, un nouveau PIN devra être créé.", modifier = Modifier.padding(top = 8.dp))
                 Text("Conseil : conserve une sauvegarde avant chaque nouvelle version APK.", modifier = Modifier.padding(top = 8.dp))
             }
         }

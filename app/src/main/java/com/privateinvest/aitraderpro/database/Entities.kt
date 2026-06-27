@@ -127,6 +127,16 @@ data class PortfolioGoalEntity(
     val createdAt: Long
 )
 
+
+@Entity(tableName = "security_logs")
+data class SecurityLogEntity(
+    @PrimaryKey(autoGenerate = true) val id: Long = 0,
+    val event: String,
+    val level: String,
+    val details: String,
+    val createdAt: Long
+)
+
 @Entity(tableName = "weight_history")
 data class WeightHistoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

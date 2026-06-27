@@ -41,6 +41,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -52,17 +53,25 @@ import com.privateinvest.aitraderpro.ui.theme.Warning
 import com.privateinvest.aitraderpro.viewmodel.AITraderViewModelFactory
 import com.privateinvest.aitraderpro.viewmodel.BrokerMode
 import com.privateinvest.aitraderpro.viewmodel.BrokerViewModel
+import com.privateinvest.aitraderpro.viewmodel.SecurityViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun BrokerAssistantScreen(onBack: () -> Unit = {}) {
+fun BrokerAssistantScreen(
+    onBack: () -> Unit = {},
+    onNavigateToSecurity: () -> Unit = {}
+) {
     val viewModel: BrokerViewModel = viewModel(factory = AITraderViewModelFactory)
+    val securityViewModel: SecurityViewModel = viewModel(factory = AITraderViewModelFactory)
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+    val securityUi by securityViewModel.uiState.collectAsStateWithLifecycle()
 
     // ─── État du récapitulatif de confirmation ───────────────────────────
     var showRecapDialog by remember { mutableStateOf(false) }
     var confirmChecked by remember { mutableStateOf(false) }
     var confirmText by remember { mutableStateOf("") }
+    var showSecurityGate by remember { mutableStateOf(false) }
+    var securityPin by remember { mutableStateOf("") }
     val confirmWord = "CONFIRMER"
 
     // ─── Dialog de résultat d'ordre ──────────────────────────────────────
@@ -73,6 +82,25 @@ fun BrokerAssistantScreen(onBack: () -> Unit = {}) {
             text = { Text(result, color = Color.LightGray) },
             confirmButton = {
                 Button(onClick = { viewModel.clearOrderResult(); onBack() }) { Text("OK") }
+            }
+        )
+    }
+
+    if (showSecurityGate) {
+        SecurityPinGateDialog(
+            title = "Sécurité ordre réel",
+            text = "Saisissez votre PIN avant d'envoyer un ordre réel. L'empreinte peut être utilisée depuis le Centre Sécurité pour déverrouiller le mode réel.",
+            pin = securityPin,
+            onPinChange = { securityPin = it.filter(Char::isDigit).take(6) },
+            onDismiss = { showSecurityGate = false; securityPin = "" },
+            onConfirm = {
+                securityViewModel.verifyPin(securityPin) { ok ->
+                    if (ok) {
+                        showSecurityGate = false
+                        securityPin = ""
+                        viewModel.submitOrder()
+                    }
+                }
             }
         )
     }
@@ -90,7 +118,25 @@ fun BrokerAssistantScreen(onBack: () -> Unit = {}) {
                 showRecapDialog = false
                 confirmChecked = false
                 confirmText = ""
-                viewModel.submitOrder()
+                if (state.brokerMode == BrokerMode.REEL) {
+                    when {
+                        // Correction 3a : PIN non configuré → message + redirection Centre Sécurité
+                        !securityUi.state.pinConfigured -> {
+                            viewModel.setError("Aucun PIN configuré. Créez un PIN dans le Centre Sécurité avant d'envoyer un ordre réel.")
+                            onNavigateToSecurity()
+                        }
+                        // Correction 3b : mode réel verrouillé après erreurs PIN → message de blocage
+                        securityUi.state.realModeLocked -> {
+                            viewModel.setError("Mode réel verrouillé (trop d'erreurs PIN). Rendez-vous dans le Centre Sécurité pour réinitialiser votre PIN.")
+                        }
+                        // Correction 3c : cas valide → ouvrir SecurityPinGateDialog
+                        else -> {
+                            showSecurityGate = true
+                        }
+                    }
+                } else {
+                    viewModel.submitOrder()
+                }
             },
             onDismiss = {
                 showRecapDialog = false
@@ -273,6 +319,8 @@ fun BrokerAssistantScreen(onBack: () -> Unit = {}) {
                 }
             }
 
+            TradingModeBanner(state.brokerMode.name)
+
             // ─── Sélection du mode ────────────────────────────────────────
             PremiumCardBox(title = "Mode d'exécution", accent = Warning) {
                 Text(
@@ -327,6 +375,36 @@ fun BrokerAssistantScreen(onBack: () -> Unit = {}) {
             }
 
             SafetyBanner("Aucun ordre automatique. Toute action doit être validée manuellement par l'utilisateur.")
+
+            // ─── Affichage erreur sécurité (correction 3) ────────────────
+            state.error?.let { errMsg ->
+                androidx.compose.foundation.layout.Box(
+                    modifier = androidx.compose.ui.Modifier
+                        .fillMaxWidth()
+                        .background(DangerRed.copy(alpha = 0.18f), RoundedCornerShape(18.dp))
+                        .padding(14.dp)
+                ) {
+                    Column {
+                        Text(
+                            "Sécurité",
+                            color = DangerRed,
+                            fontWeight = FontWeight.Bold,
+                            fontSize = 17.sp
+                        )
+                        Text(
+                            errMsg,
+                            color = SoftWhite,
+                            fontSize = 15.sp,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                        PremiumSecondaryButton(
+                            "Effacer",
+                            onClick = { viewModel.clearError() },
+                            modifier = Modifier.padding(top = 8.dp)
+                        )
+                    }
+                }
+            }
         }
     }
 }
@@ -443,6 +521,40 @@ private fun BrokerConfirmationDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Annuler") }
         }
+    )
+}
+
+
+@Composable
+private fun SecurityPinGateDialog(
+    title: String,
+    text: String,
+    pin: String,
+    onPinChange: (String) -> Unit,
+    onDismiss: () -> Unit,
+    onConfirm: () -> Unit
+) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text(title, color = DangerRed, fontWeight = FontWeight.Bold) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(10.dp)) {
+                Text(text, color = Color.LightGray)
+                OutlinedTextField(
+                    value = pin,
+                    onValueChange = onPinChange,
+                    label = { Text("Code PIN") },
+                    visualTransformation = PasswordVisualTransformation(),
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.NumberPassword),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            Button(onClick = onConfirm, enabled = pin.length in 4..6) { Text("Valider") }
+        },
+        dismissButton = { TextButton(onClick = onDismiss) { Text("Annuler") } }
     )
 }
 

@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.privateinvest.aitraderpro.data.model.AssetDetail
 import com.privateinvest.aitraderpro.navigation.SelectedAssetStore
 import com.privateinvest.aitraderpro.repository.MarketRepository
+import com.privateinvest.aitraderpro.repository.SecurityRepository
+import com.privateinvest.aitraderpro.repository.TradingExecutionMode
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -61,7 +63,10 @@ data class BrokerUiState(
     val orderResult: String? = null
 )
 
-class BrokerViewModel(private val repository: MarketRepository) : ViewModel() {
+class BrokerViewModel(
+    private val repository: MarketRepository,
+    private val securityRepository: SecurityRepository
+) : ViewModel() {
 
     private val _uiState = MutableStateFlow(BrokerUiState())
     val uiState: StateFlow<BrokerUiState> = _uiState.asStateFlow()
@@ -115,8 +120,21 @@ class BrokerViewModel(private val repository: MarketRepository) : ViewModel() {
         recalculate(clamped)
     }
 
+    /**
+     * Correction 1 : met à jour le BrokerMode local ET synchronise TradingExecutionMode
+     * dans SecurityRepository pour que le bandeau global reflète le mode réellement actif.
+     *   BrokerMode.SIMULATION    → TradingExecutionMode.SIMULATION
+     *   BrokerMode.PAPER_TRADING → TradingExecutionMode.PAPER_TRADING
+     *   BrokerMode.REEL          → TradingExecutionMode.REAL
+     */
     fun setBrokerMode(mode: BrokerMode) {
         _uiState.value = _uiState.value.copy(brokerMode = mode)
+        val execMode = when (mode) {
+            BrokerMode.SIMULATION    -> TradingExecutionMode.SIMULATION
+            BrokerMode.PAPER_TRADING -> TradingExecutionMode.PAPER_TRADING
+            BrokerMode.REEL          -> TradingExecutionMode.REAL
+        }
+        viewModelScope.launch { securityRepository.setTradingMode(execMode) }
     }
 
     /**
@@ -154,6 +172,15 @@ class BrokerViewModel(private val repository: MarketRepository) : ViewModel() {
 
     fun clearOrderResult() {
         _uiState.value = _uiState.value.copy(orderResult = null)
+    }
+
+    /** Correction 3 : permet à l'UI d'afficher un message d'erreur sécurité */
+    fun setError(message: String) {
+        _uiState.value = _uiState.value.copy(error = message)
+    }
+
+    fun clearError() {
+        _uiState.value = _uiState.value.copy(error = null)
     }
 
     // ─── Calculs internes ───────────────────────────────────────────────────

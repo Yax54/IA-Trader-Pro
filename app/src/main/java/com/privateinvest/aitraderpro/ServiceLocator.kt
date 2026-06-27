@@ -9,6 +9,8 @@ import com.privateinvest.aitraderpro.repository.AdaptiveWeightsManager
 import com.privateinvest.aitraderpro.repository.MarketRepository
 import com.privateinvest.aitraderpro.repository.MarketRepositoryImpl
 import com.privateinvest.aitraderpro.repository.UserPreferencesRepository
+import com.privateinvest.aitraderpro.repository.SecurityRepository
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.json.Json
 import okhttp3.MediaType.Companion.toMediaType
 import okhttp3.OkHttpClient
@@ -23,6 +25,7 @@ object ServiceLocator {
         appContext = context.applicationContext
     }
 
+    @OptIn(ExperimentalSerializationApi::class)
     private val json by lazy {
         Json {
             ignoreUnknownKeys = true
@@ -49,7 +52,7 @@ object ServiceLocator {
 
     val database: AppDatabase by lazy {
         Room.databaseBuilder(appContext, AppDatabase::class.java, "ai_trader_pro.db")
-            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4)
+            .addMigrations(AppDatabase.MIGRATION_1_2, AppDatabase.MIGRATION_2_3, AppDatabase.MIGRATION_3_4, AppDatabase.MIGRATION_4_5)
             .build()
     }
 
@@ -63,6 +66,10 @@ object ServiceLocator {
 
     val notificationManager: TraderNotificationManager by lazy {
         TraderNotificationManager(appContext)
+    }
+
+    val securityRepository: SecurityRepository by lazy {
+        SecurityRepository(appContext, database.securityLogDao())
     }
 
     val marketRepository: MarketRepository by lazy {

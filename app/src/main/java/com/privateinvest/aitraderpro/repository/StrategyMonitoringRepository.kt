@@ -36,6 +36,9 @@ class StrategyMonitoringRepository(
         mode: String = "SIMULATION",
         preferredType: OpportunityStrategyType? = null
     ): Boolean {
+        // V1.3 DataFreshnessGuard — bloquer si données absentes/périmées
+        if (!DataFreshnessGuard.canGenerateSignal(symbol)) return false
+
         val detail = marketRepository.getMarketData(symbol) ?: return false
         val strategies = OpportunityStrategyEngine.classify(detail)
         val selected = preferredType?.let { type -> strategies.firstOrNull { it.type == type } } ?: strategies.first()
@@ -88,10 +91,14 @@ class StrategyMonitoringRepository(
     }
 
     suspend fun refreshFollowUps() {
+        // V1.3 DataFreshnessGuard — si aucune donnée réelle, mise à jour des prix bloquée
+        val dataAvailable = DataFreshnessGuard.canGenerateSignal()
+
         val active = db.strategyFollowUpDao().getActive()
         val now = System.currentTimeMillis()
         active.forEach { item ->
-            val detail = marketRepository.getMarketData(item.symbol)
+            // Si données indisponibles, on ne met pas à jour le prix mais on continue le suivi
+            val detail = if (dataAvailable) marketRepository.getMarketData(item.symbol) else null
             val currentPrice = detail?.quotePrice ?: item.currentPrice
             val perf = if (item.entryPrice > 0) ((currentPrice - item.entryPrice) / item.entryPrice) * 100.0 else 0.0
             val daysOpen = TimeUnit.MILLISECONDS.toDays(now - item.openedAt)

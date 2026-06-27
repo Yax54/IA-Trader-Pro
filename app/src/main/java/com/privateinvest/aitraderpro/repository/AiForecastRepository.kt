@@ -451,10 +451,17 @@ class AiForecastRepository(
      * Rafraîchit les outcomes des pronostics actifs.
      * Appelé par le WorkManager toutes les 6h.
      *
+     * V1.3 DataFreshnessGuard — bloqué si aucune donnée réelle disponible.
      * Pour chaque pronostic ACTIVE, tente de récupérer le prix actuel
      * et calcule la performance selon les horizons écoulés.
      */
     suspend fun refreshOutcomes() {
+        // V1.3 : bloquer si données absentes/périmées
+        if (!DataFreshnessGuard.canGenerateForecast()) {
+            // Pas de refresh — données indisponibles, on ne met pas à jour les outcomes
+            return
+        }
+
         val active = forecastDao.getAllPending() + forecastDao.getAllPlayed()
             .filter { it.status == "ACTIVE" }
 

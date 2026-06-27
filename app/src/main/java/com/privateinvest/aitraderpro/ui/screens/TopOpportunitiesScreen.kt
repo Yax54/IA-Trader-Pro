@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.privateinvest.aitraderpro.repository.DataFreshnessGuard
 import com.privateinvest.aitraderpro.viewmodel.TopOpportunitiesViewModel
 
 private enum class OpportunitySort { SCORE, CONFIANCE, RISQUE }
@@ -48,6 +49,8 @@ fun TopOpportunitiesScreen(
     }
 
     LazyColumn(Modifier.fillMaxSize().padding(18.dp), verticalArrangement = Arrangement.spacedBy(14.dp)) {
+        // V1.3 : bannière données marché si aucune source réelle disponible
+        item { DataQualityBanner(message = DataFreshnessGuard.globalBannerMessage()) }
         item { PremiumScreenTitle("Top Opportunités", "Tri par score, confiance ou risque") }
         item {
             Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {

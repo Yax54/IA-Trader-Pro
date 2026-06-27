@@ -6,6 +6,8 @@ import com.privateinvest.aitraderpro.database.AppDatabase
 import com.privateinvest.aitraderpro.network.MarketApiService
 import com.privateinvest.aitraderpro.notifications.TraderNotificationManager
 import com.privateinvest.aitraderpro.repository.AdaptiveWeightsManager
+import com.privateinvest.aitraderpro.repository.DataFreshnessGuard
+import com.privateinvest.aitraderpro.repository.MarketDataConnectionRepository
 import com.privateinvest.aitraderpro.repository.MarketRepository
 import com.privateinvest.aitraderpro.repository.MarketRepositoryImpl
 import com.privateinvest.aitraderpro.repository.AiForecastRepository
@@ -80,6 +82,12 @@ object ServiceLocator {
     val securityRepository: SecurityRepository by lazy {
         SecurityRepository(appContext, database.securityLogDao())
     }
+
+    val marketDataConnectionRepository: MarketDataConnectionRepository by lazy {
+        MarketDataConnectionRepository(marketRepository = marketRepository)
+    }
+
+    val dataFreshnessGuard: DataFreshnessGuard get() = DataFreshnessGuard
 
     val aiForecastRepository: AiForecastRepository by lazy {
         AiForecastRepository(

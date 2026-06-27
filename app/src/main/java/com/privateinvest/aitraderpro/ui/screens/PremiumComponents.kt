@@ -221,3 +221,36 @@ fun scoreColor(score: Int): Color = when { score >= 75 -> Success; score >= 55 -
 fun Double.formatPercent(): String = if (this >= 0) "+${String.format(java.util.Locale.FRANCE, "%.2f", this)} %" else "${String.format(java.util.Locale.FRANCE, "%.2f", this)} %"
 fun Double.formatPlainPercent(): String = String.format(java.util.Locale.FRANCE, "%.1f %%", this)
 fun Int.clampPercent(): Int = coerceIn(0, 100)
+
+/**
+ * DataQualityBanner — V1.3 Colonne vertébrale données marché.
+ *
+ * Bannière globale affichée dans Dashboard et TopOpportunities quand
+ * les données de marché ne sont pas utilisables (aucune source réelle disponible).
+ *
+ * @param message Message d'alerte à afficher (null = pas d'affichage).
+ * @param modifier Modifier Compose optionnel.
+ */
+@Composable
+fun DataQualityBanner(message: String?, modifier: Modifier = Modifier) {
+    if (message == null) return
+    Row(
+        modifier = modifier
+            .fillMaxWidth()
+            .background(Warning.copy(alpha = 0.18f), RoundedCornerShape(10.dp))
+            .padding(horizontal = 14.dp, vertical = 10.dp),
+        verticalAlignment = Alignment.CenterVertically,
+        horizontalArrangement = Arrangement.spacedBy(10.dp)
+    ) {
+        Text("📡", fontSize = 20.sp)
+        Text(
+            text = message,
+            color = Warning,
+            fontSize = 14.sp,
+            fontWeight = FontWeight.SemiBold,
+            lineHeight = 20.sp,
+            modifier = Modifier.weight(1f)
+        )
+    }
+}
+

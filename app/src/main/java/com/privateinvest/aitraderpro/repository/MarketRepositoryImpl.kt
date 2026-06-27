@@ -136,6 +136,12 @@ class MarketRepositoryImpl(
     }
 
     override suspend fun getSignals(): List<AssetSignal> {
+        // V1.3 DataFreshnessGuard — bloquer si aucune donnée réelle disponible
+        if (!DataFreshnessGuard.canGenerateSignal()) {
+            // Retourner le cache — aucune génération avec données absentes
+            return db.signalDao().getAllSignals().map { it.toDomain() }
+        }
+
         if (BuildConfig.ALPHA_VANTAGE_API_KEY == "YOUR_API_KEY_HERE") {
             return db.signalDao().getAllSignals().map { it.toDomain() }
         }

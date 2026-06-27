@@ -46,6 +46,7 @@ fun MoreScreen(onNavigate: (String) -> Unit) {
         MoreGroup(
             "Réglages",
             listOf(
+                MoreItem("market_data_center", "📡 Données marché", "Sources Alpha Vantage / Broker — vérifie la fraîcheur des cours"),
                 MoreItem("onboarding", "Première utilisation", "Checklist de départ"),
                 MoreItem("preferences_center", "Préférences", "Affichage, devise, notifications"),
                 MoreItem("risk", "Gestion du risque", "Limites et protections"),

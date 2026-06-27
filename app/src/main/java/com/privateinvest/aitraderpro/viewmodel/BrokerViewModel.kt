@@ -5,6 +5,7 @@ import androidx.lifecycle.viewModelScope
 import com.privateinvest.aitraderpro.ServiceLocator
 import com.privateinvest.aitraderpro.data.model.AssetDetail
 import com.privateinvest.aitraderpro.navigation.SelectedAssetStore
+import com.privateinvest.aitraderpro.repository.DataFreshnessGuard
 import com.privateinvest.aitraderpro.repository.MarketRepository
 import com.privateinvest.aitraderpro.repository.SecurityRepository
 import com.privateinvest.aitraderpro.repository.TradingExecutionMode
@@ -183,6 +184,15 @@ class BrokerViewModel(
                     )
                 }
                 BrokerMode.REEL -> {
+                    // V1.3 DataFreshnessGuard — bloquer si broker/données invalides
+                    val blockReason = DataFreshnessGuard.realOrderBlockReason(state.symbol)
+                    if (blockReason != null) {
+                        _uiState.value = _uiState.value.copy(
+                            error = "⚠️ Ordre réel bloqué : $blockReason"
+                        )
+                        return@launch
+                    }
+
                     // Suivi stratégique automatique après achat réel — PIN/empreinte déjà validés par l'UI
                     runCatching {
                         strategyRepo.createFollowUp(

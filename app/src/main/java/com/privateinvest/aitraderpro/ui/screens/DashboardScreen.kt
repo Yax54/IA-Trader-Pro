@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.privateinvest.aitraderpro.repository.DataFreshnessGuard
 import com.privateinvest.aitraderpro.ui.theme.SoftWhite
 import com.privateinvest.aitraderpro.ui.theme.Success
 import com.privateinvest.aitraderpro.ui.theme.Warning
@@ -53,6 +54,11 @@ fun DashboardScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
+        // V1.3 : bannière données marché si aucune source réelle disponible
+        item {
+            DataQualityBanner(message = DataFreshnessGuard.globalBannerMessage())
+        }
+
         // R-05 : titre premium
         item {
             PremiumScreenTitle(

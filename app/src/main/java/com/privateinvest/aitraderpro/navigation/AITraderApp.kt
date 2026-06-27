@@ -50,6 +50,7 @@ import com.privateinvest.aitraderpro.ui.screens.SecurityCenterScreen
 import com.privateinvest.aitraderpro.ui.screens.SignalAssistantScreen
 import com.privateinvest.aitraderpro.ui.screens.StatsCenterScreen
 import com.privateinvest.aitraderpro.ui.screens.AiForecastScreen
+import com.privateinvest.aitraderpro.ui.screens.MarketDataCenterScreen
 import com.privateinvest.aitraderpro.ui.screens.StrategyMonitoringScreen
 import com.privateinvest.aitraderpro.ui.screens.TopOpportunitiesScreen
 import com.privateinvest.aitraderpro.ui.screens.TradingModeBanner
@@ -195,6 +196,10 @@ fun AITraderApp() {
                 // MODULE PRONOSTICS IA + MÉMOIRE GLISSANTE
                 composable(AppDestination.AiForecasts.route) {
                     AiForecastScreen(onBack = { navController.popBackStack() })
+                }
+                // MODULE CENTRE DONNÉES MARCHÉ
+                composable(AppDestination.MarketDataCenter.route) {
+                    MarketDataCenterScreen(onBack = { navController.popBackStack() })
                 }
             }
         }

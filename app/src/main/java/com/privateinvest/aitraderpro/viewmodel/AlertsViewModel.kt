@@ -14,6 +14,9 @@ class AlertsViewModel(private val repository: MarketRepository) : ViewModel() {
     private val _alert = MutableStateFlow<AssetSignal?>(null)
     val alert: StateFlow<AssetSignal?> = _alert.asStateFlow()
 
+    private val _activeAlerts = MutableStateFlow<List<AssetSignal>>(emptyList())
+    val activeAlerts: StateFlow<List<AssetSignal>> = _activeAlerts.asStateFlow()
+
     private val _history = MutableStateFlow<List<NotificationHistoryItem>>(emptyList())
     val history: StateFlow<List<NotificationHistoryItem>> = _history.asStateFlow()
 
@@ -26,15 +29,17 @@ class AlertsViewModel(private val repository: MarketRepository) : ViewModel() {
 
     fun refresh() {
         viewModelScope.launch {
-            _alert.value = repository.getLatestAlert()
+            val active = repository.getSignals().filter { it.action.name == "ACHETER" || it.score >= 75 }
+            _activeAlerts.value = active
+            _alert.value = active.firstOrNull() ?: repository.getLatestAlert()
             _history.value = repository.getNotificationHistory()
         }
     }
 
-    fun confirmAlert() {
-        val current = _alert.value ?: return
+    fun confirmAlert(symbol: String? = null) {
+        val currentSymbol = symbol ?: _alert.value?.symbol ?: return
         viewModelScope.launch {
-            val success = repository.confirmSimulationOrder(current.symbol)
+            val success = repository.confirmSimulationOrder(currentSymbol)
             _statusMessage.value = if (success) {
                 "Signal enregistré en mémoire, achat simulé exécuté et suivi J+1 / J+7 / J+30 démarré."
             } else {

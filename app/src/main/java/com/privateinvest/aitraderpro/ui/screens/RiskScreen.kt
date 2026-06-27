@@ -11,10 +11,18 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
+import androidx.compose.material3.TopAppBarDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
@@ -24,20 +32,36 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.privateinvest.aitraderpro.ui.theme.SoftWhite
 import com.privateinvest.aitraderpro.ui.theme.Success
 import com.privateinvest.aitraderpro.ui.theme.Warning
 import com.privateinvest.aitraderpro.viewmodel.AITraderViewModelFactory
 import com.privateinvest.aitraderpro.viewmodel.RiskViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun RiskScreen() {
+fun RiskScreen(onBack: () -> Unit = {}) {
     val viewModel: RiskViewModel = viewModel(factory = AITraderViewModelFactory)
     val rules by viewModel.rules.collectAsStateWithLifecycle()
 
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { Text("Gestion du risque", color = SoftWhite) },
+                navigationIcon = {
+                    IconButton(onClick = onBack) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Retour", tint = SoftWhite)
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(containerColor = Color(0xFF0D1B2A))
+            )
+        }
+    ) { innerPadding ->
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()
-            .padding(16.dp),
+            .padding(innerPadding)
+            .padding(horizontal = 16.dp),
         verticalArrangement = Arrangement.spacedBy(14.dp)
     ) {
         item {
@@ -54,6 +78,7 @@ fun RiskScreen() {
 
         item { SafetyBanner() }
     }
+    } // fin Scaffold
 }
 
 /** Carte pour une règle de risque avec explication et badge niveau */

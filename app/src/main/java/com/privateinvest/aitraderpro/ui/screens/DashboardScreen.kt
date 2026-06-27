@@ -46,14 +46,7 @@ fun DashboardScreen(
     val state by viewModel.uiState.collectAsStateWithLifecycle()
     val beginnerModeEnabled by settingsViewModel.beginnerModeEnabled.collectAsStateWithLifecycle()
 
-    // R-12 : état de chargement
-    if (state.loading) {
-        Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-            CircularProgressIndicator(color = PremiumBlue)
-        }
-        return
-    }
-
+    // A2 : Bouton refresh premium
     LazyColumn(
         modifier = Modifier
             .fillMaxSize()

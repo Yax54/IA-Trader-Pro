@@ -6,6 +6,12 @@ import com.privateinvest.aitraderpro.ServiceLocator
 import com.privateinvest.aitraderpro.repository.MarketRepository
 import com.privateinvest.aitraderpro.repository.UserPreferencesRepository
 import com.privateinvest.aitraderpro.repository.SecurityRepository
+import com.privateinvest.aitraderpro.viewmodel.StatsCenterViewModel
+import com.privateinvest.aitraderpro.viewmodel.PreferencesCenterViewModel
+import com.privateinvest.aitraderpro.viewmodel.MultiPortfolioViewModel
+import com.privateinvest.aitraderpro.viewmodel.DailyReportViewModel
+import com.privateinvest.aitraderpro.viewmodel.OnboardingViewModel
+import com.privateinvest.aitraderpro.viewmodel.TopOpportunitiesViewModel
 
 object AITraderViewModelFactory : ViewModelProvider.Factory {
     private val repository: MarketRepository get() = ServiceLocator.marketRepository
@@ -25,6 +31,12 @@ object AITraderViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(SettingsViewModel::class.java) -> SettingsViewModel(userPreferencesRepository) as T
             modelClass.isAssignableFrom(BrokerViewModel::class.java) -> BrokerViewModel(repository, securityRepository) as T
             modelClass.isAssignableFrom(SecurityViewModel::class.java) -> SecurityViewModel(securityRepository) as T
+            modelClass.isAssignableFrom(StatsCenterViewModel::class.java) -> StatsCenterViewModel() as T
+            modelClass.isAssignableFrom(PreferencesCenterViewModel::class.java) -> PreferencesCenterViewModel() as T
+            modelClass.isAssignableFrom(MultiPortfolioViewModel::class.java) -> MultiPortfolioViewModel() as T
+            modelClass.isAssignableFrom(DailyReportViewModel::class.java) -> DailyReportViewModel() as T
+            modelClass.isAssignableFrom(OnboardingViewModel::class.java) -> OnboardingViewModel() as T
+            modelClass.isAssignableFrom(TopOpportunitiesViewModel::class.java) -> TopOpportunitiesViewModel() as T
             else -> throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
         }
     }

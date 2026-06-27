@@ -57,7 +57,8 @@ import com.privateinvest.aitraderpro.viewmodel.SettingsViewModel
 @Composable
 fun AssetDetailScreen(
     onBack: () -> Unit = {},           // R-10 : bouton retour
-    onOpenAssistant: () -> Unit = {}
+    onOpenAssistant: () -> Unit = {},
+    onOpenBroker: () -> Unit = {}
 ) {
     val viewModel: AssetDetailViewModel = viewModel(factory = AITraderViewModelFactory)
     val settingsViewModel: SettingsViewModel = viewModel(factory = AITraderViewModelFactory)
@@ -167,6 +168,11 @@ fun AssetDetailScreen(
                                 Text(if (showAdvanced) "Masquer détails" else "Voir détails")
                             }
                         }
+                        PremiumSecondaryButton(
+                            text = "Assistant investissement",
+                            onClick = onOpenBroker,
+                            modifier = Modifier.fillMaxWidth()
+                        )
 
                         if (showAdvanced) {
                             Card(

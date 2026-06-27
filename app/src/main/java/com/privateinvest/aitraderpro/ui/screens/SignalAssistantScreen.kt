@@ -37,12 +37,16 @@ import com.privateinvest.aitraderpro.ui.theme.Success
 import com.privateinvest.aitraderpro.ui.theme.Warning
 import com.privateinvest.aitraderpro.viewmodel.AITraderViewModelFactory
 import com.privateinvest.aitraderpro.viewmodel.AssetDetailViewModel
+import com.privateinvest.aitraderpro.viewmodel.SettingsViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SignalAssistantScreen(onBack: () -> Unit = {}) {   // R-11 : onBack
     val viewModel: AssetDetailViewModel = viewModel(factory = AITraderViewModelFactory)
+    val settingsViewModel: SettingsViewModel = viewModel(factory = AITraderViewModelFactory)
     val detail by viewModel.detail.collectAsStateWithLifecycle()
+    // C3 : mode débutant branché
+    val beginnerMode by settingsViewModel.beginnerModeEnabled.collectAsStateWithLifecycle()
 
     Scaffold(
         topBar = {
@@ -87,54 +91,70 @@ fun SignalAssistantScreen(onBack: () -> Unit = {}) {   // R-11 : onBack
                     content = "${beginner.actionLabel} · ${beginner.headline}"
                 )
 
-                PremiumAssistantCard(
-                    title = "RSI",
-                    accent = indicatorColor(snapshot.rsi, 50.0, 70.0),
-                    content = "Valeur ${String.format("%.2f", snapshot.rsi)} · ${BeginnerExplanation.beginnerLabelForIndicator("RSI", snapshot.rsi)}"
-                )
+                // C3 : en mode débutant, on affiche uniquement la synthèse simplifiée
+                if (beginnerMode) {
+                    PremiumAssistantCard(
+                        title = "Lecture simplifiée",
+                        accent = PremiumBlue,
+                        content = beginner.whyText.joinToString(separator = "\n• ", prefix = "• ")
+                    )
+                    PremiumAssistantCard(
+                        title = "Conseil débutant",
+                        accent = Warning,
+                        content = beginner.warningText
+                    )
+                    SafetyBanner("Mode débutant actif : seule la synthèse simplifiée est affichée. Activez le mode expert dans les Préférences pour voir tous les indicateurs.")
+                } else {
+                    // Mode expert : tous les indicateurs
+                    PremiumAssistantCard(
+                        title = "RSI",
+                        accent = indicatorColor(snapshot.rsi, 50.0, 70.0),
+                        content = "Valeur ${String.format("%.2f", snapshot.rsi)} · ${BeginnerExplanation.beginnerLabelForIndicator("RSI", snapshot.rsi)}"
+                    )
 
-                PremiumAssistantCard(
-                    title = "MACD",
-                    accent = if (snapshot.macd > snapshot.macdSignal) Success else Warning,
-                    content = if (snapshot.macd > snapshot.macdSignal) {
-                        "MACD haussier : ${String.format("%.4f", snapshot.macd)} au-dessus du signal ${String.format("%.4f", snapshot.macdSignal)}."
-                    } else {
-                        "MACD prudent : ${String.format("%.4f", snapshot.macd)} n'est pas encore au-dessus du signal ${String.format("%.4f", snapshot.macdSignal)}."
-                    }
-                )
+                    PremiumAssistantCard(
+                        title = "MACD",
+                        accent = if (snapshot.macd > snapshot.macdSignal) Success else Warning,
+                        content = if (snapshot.macd > snapshot.macdSignal) {
+                            "MACD haussier : ${String.format("%.4f", snapshot.macd)} au-dessus du signal ${String.format("%.4f", snapshot.macdSignal)}."
+                        } else {
+                            "MACD prudent : ${String.format("%.4f", snapshot.macd)} n'est pas encore au-dessus du signal ${String.format("%.4f", snapshot.macdSignal)}."
+                        }
+                    )
 
-                PremiumAssistantCard(
-                    title = "EMA",
-                    accent = if (snapshot.ema20 > snapshot.ema50 && snapshot.ema50 > snapshot.ema200) Success else Warning,
-                    content = buildString {
-                        append("EMA20 ${formatPrice(snapshot.ema20)}")
-                        append(" · EMA50 ${formatPrice(snapshot.ema50)}")
-                        append(" · EMA200 ${formatPrice(snapshot.ema200)}. ")
-                        append(
-                            if (snapshot.ema20 > snapshot.ema50) {
-                                "La tendance courte est au-dessus de la tendance intermédiaire."
-                            } else {
-                                "La tendance courte n'est pas encore au-dessus de la tendance intermédiaire."
-                            }
-                        )
-                    }
-                )
+                    PremiumAssistantCard(
+                        title = "EMA",
+                        accent = if (snapshot.ema20 > snapshot.ema50 && snapshot.ema50 > snapshot.ema200) Success else Warning,
+                        content = buildString {
+                            append("EMA20 ${formatPrice(snapshot.ema20)}")
+                            append(" · EMA50 ${formatPrice(snapshot.ema50)}")
+                            append(" · EMA200 ${formatPrice(snapshot.ema200)}. ")
+                            append(
+                                if (snapshot.ema20 > snapshot.ema50) {
+                                    "La tendance courte est au-dessus de la tendance intermédiaire."
+                                } else {
+                                    "La tendance courte n'est pas encore au-dessus de la tendance intermédiaire."
+                                }
+                            )
+                        }
+                    )
 
-                PremiumAssistantCard(
-                    title = "Historique similaire",
-                    accent = if (explanation.historicalWinRate >= 60.0) Success else Warning,
-                    content = if (explanation.similarConfigurations > 0) {
-                        "${explanation.similarConfigurations} configurations similaires · ${String.format("%.1f", explanation.historicalWinRate)} % de réussite · gain moyen ${String.format("%.2f", explanation.averageGain)} % · impact max ${explanation.maxImpactPoints} points."
-                    } else {
-                        "Pas encore assez de cas comparables. Les futures validations alimenteront cet historique."
-                    }
-                )
+                    PremiumAssistantCard(
+                        title = "Historique similaire",
+                        accent = if (explanation.historicalWinRate >= 60.0) Success else Warning,
+                        content = if (explanation.similarConfigurations > 0) {
+                            "${explanation.similarConfigurations} configurations similaires · ${String.format("%.1f", explanation.historicalWinRate)} % de réussite · gain moyen ${String.format("%.2f", explanation.averageGain)} % · impact max ${explanation.maxImpactPoints} points."
+                        } else {
+                            "Pas encore assez de cas comparables. Les futures validations alimenteront cet historique."
+                        }
+                    )
 
-                PremiumAssistantCard(
-                    title = "Synthèse pédagogique",
-                    accent = Color(0xFF60A5FA),
-                    content = beginner.whyText.joinToString(separator = " ")
-                )
+                    PremiumAssistantCard(
+                        title = "Synthèse pédagogique",
+                        accent = Color(0xFF60A5FA),
+                        content = beginner.whyText.joinToString(separator = " ")
+                    )
+                }
             }
         }
     }

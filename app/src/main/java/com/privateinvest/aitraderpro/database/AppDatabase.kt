@@ -16,10 +16,12 @@ import androidx.sqlite.db.SupportSQLiteDatabase
         TradeEntity::class,
         SimulationAccountEntity::class,
         NotificationHistoryEntity::class,
+        FavoriteAssetEntity::class,
+        PortfolioGoalEntity::class,
         WeightHistoryEntity::class,
         DecisionLogEntity::class
     ],
-    version = 3,
+    version = 4,
     exportSchema = false
 )
 abstract class AppDatabase : RoomDatabase() {
@@ -32,6 +34,8 @@ abstract class AppDatabase : RoomDatabase() {
     abstract fun tradeDao(): TradeDao
     abstract fun simulationAccountDao(): SimulationAccountDao
     abstract fun notificationHistoryDao(): NotificationHistoryDao
+    abstract fun favoriteAssetDao(): FavoriteAssetDao
+    abstract fun portfolioGoalDao(): PortfolioGoalDao
     abstract fun weightHistoryDao(): WeightHistoryDao
     abstract fun decisionLogDao(): DecisionLogDao
 
@@ -110,6 +114,36 @@ abstract class AppDatabase : RoomDatabase() {
                         createdAt INTEGER NOT NULL,
                         status TEXT NOT NULL
                     )
+                    """.trimIndent()
+                )
+            }
+        }
+
+
+        val MIGRATION_3_4 = object : Migration(3, 4) {
+            override fun migrate(db: SupportSQLiteDatabase) {
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS favorite_assets (
+                        symbol TEXT PRIMARY KEY NOT NULL,
+                        name TEXT NOT NULL,
+                        createdAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    """
+                    CREATE TABLE IF NOT EXISTS portfolio_goals (
+                        id INTEGER PRIMARY KEY NOT NULL,
+                        targetPercent REAL NOT NULL,
+                        createdAt INTEGER NOT NULL
+                    )
+                    """.trimIndent()
+                )
+                db.execSQL(
+                    """
+                    INSERT OR IGNORE INTO portfolio_goals (id, targetPercent, createdAt)
+                    VALUES (1, 10.0, 0)
                     """.trimIndent()
                 )
             }

@@ -133,6 +133,31 @@ interface NotificationHistoryDao {
     suspend fun insert(item: NotificationHistoryEntity): Long
 }
 
+
+@Dao
+interface FavoriteAssetDao {
+    @Query("SELECT * FROM favorite_assets ORDER BY createdAt DESC")
+    suspend fun getAll(): List<FavoriteAssetEntity>
+
+    @Query("SELECT * FROM favorite_assets WHERE symbol = :symbol LIMIT 1")
+    suspend fun findBySymbol(symbol: String): FavoriteAssetEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun insert(item: FavoriteAssetEntity)
+
+    @Delete
+    suspend fun delete(item: FavoriteAssetEntity)
+}
+
+@Dao
+interface PortfolioGoalDao {
+    @Query("SELECT * FROM portfolio_goals WHERE id = 1 LIMIT 1")
+    suspend fun getCurrent(): PortfolioGoalEntity?
+
+    @Insert(onConflict = OnConflictStrategy.REPLACE)
+    suspend fun upsert(item: PortfolioGoalEntity)
+}
+
 @Dao
 interface WeightHistoryDao {
     @Query("SELECT * FROM weight_history ORDER BY recordedAt DESC")

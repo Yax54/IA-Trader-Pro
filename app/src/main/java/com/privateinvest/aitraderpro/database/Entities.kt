@@ -112,6 +112,21 @@ data class NotificationHistoryEntity(
     val status: String
 )
 
+
+@Entity(tableName = "favorite_assets")
+data class FavoriteAssetEntity(
+    @PrimaryKey val symbol: String,
+    val name: String,
+    val createdAt: Long
+)
+
+@Entity(tableName = "portfolio_goals")
+data class PortfolioGoalEntity(
+    @PrimaryKey val id: Long = 1,
+    val targetPercent: Double,
+    val createdAt: Long
+)
+
 @Entity(tableName = "weight_history")
 data class WeightHistoryEntity(
     @PrimaryKey(autoGenerate = true) val id: Long = 0,

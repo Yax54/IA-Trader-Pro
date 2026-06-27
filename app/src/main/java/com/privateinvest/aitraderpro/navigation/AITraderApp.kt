@@ -25,6 +25,8 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.privateinvest.aitraderpro.ui.screens.AdminScreen
+import com.privateinvest.aitraderpro.ui.screens.ControlCenterScreen
+import com.privateinvest.aitraderpro.ui.screens.RealValidationScreen
 import com.privateinvest.aitraderpro.ui.screens.AlertsScreen
 import com.privateinvest.aitraderpro.ui.screens.AssetDetailScreen
 import com.privateinvest.aitraderpro.ui.screens.AuditScreen
@@ -132,7 +134,8 @@ fun AITraderApp() {
                     DashboardScreen(
                         onOpenRisk = { navController.navigate(AppDestination.Risk.route) },
                         onOpenAdmin = { navController.navigate(AppDestination.Admin.route) },
-                        onOpenAsset = ::openAsset
+                        onOpenAsset = ::openAsset,
+                        onOpenCockpit = { navController.navigate(AppDestination.ControlCenter.route) }
                     )
                 }
                 composable(AppDestination.TopOpportunities.route) {
@@ -200,6 +203,19 @@ fun AITraderApp() {
                 // MODULE CENTRE DONNÉES MARCHÉ
                 composable(AppDestination.MarketDataCenter.route) {
                     MarketDataCenterScreen(onBack = { navController.popBackStack() })
+                }
+                // MODULE V1.4 : Centre de Contrôle Intelligent / Validation Réelle
+                composable(AppDestination.ControlCenter.route) {
+                    ControlCenterScreen(
+                        onBack = { navController.popBackStack() },
+                        onNavigate = { route -> navController.navigate(route) }
+                    )
+                }
+                composable(AppDestination.RealValidation.route) {
+                    RealValidationScreen(
+                        onBack = { navController.popBackStack() },
+                        onNavigate = { route -> navController.navigate(route) }
+                    )
                 }
             }
         }

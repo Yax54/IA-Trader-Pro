@@ -40,7 +40,8 @@ import com.privateinvest.aitraderpro.viewmodel.SettingsViewModel
 fun DashboardScreen(
     onOpenRisk: () -> Unit,
     onOpenAdmin: () -> Unit,
-    onOpenAsset: (String, String) -> Unit
+    onOpenAsset: (String, String) -> Unit,
+    onOpenCockpit: () -> Unit
 ) {
     val viewModel: DashboardViewModel = viewModel(factory = AITraderViewModelFactory)
     val settingsViewModel: SettingsViewModel = viewModel(factory = AITraderViewModelFactory)
@@ -59,12 +60,26 @@ fun DashboardScreen(
             DataQualityBanner(message = DataFreshnessGuard.globalBannerMessage())
         }
 
-        // R-05 : titre premium
+        // R-05 : titre premium + accès discret Cockpit IA (V1.4)
         item {
-            PremiumScreenTitle(
-                title = "Tableau de bord",
-                subtitle = if (beginnerModeEnabled) "Mode débutant actif" else "Mode expert actif"
-            )
+            Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween, verticalAlignment = Alignment.CenterVertically) {
+                Column(Modifier.weight(1f)) {
+                    PremiumScreenTitle(
+                        title = "Tableau de bord",
+                        subtitle = if (beginnerModeEnabled) "Mode débutant actif" else "Mode expert actif"
+                    )
+                }
+                Text(
+                    text = "🧠 Cockpit IA",
+                    color = Color.White,
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier
+                        .background(PremiumBlue, RoundedCornerShape(999.dp))
+                        .clickable { onOpenCockpit() }
+                        .padding(horizontal = 14.dp, vertical = 9.dp)
+                )
+            }
         }
 
         // R-05 : métriques en style PremiumMetric

@@ -24,6 +24,7 @@ fun MoreScreen(onNavigate: (String) -> Unit) {
         MoreGroup(
             "Analyse",
             listOf(
+                MoreItem("control_center", "🧠 Cockpit IA", "Supervision globale — score IA, modules, validation"),
                 MoreItem("watchlist", "Watchlist", "Actifs suivis et signaux"),
                 MoreItem("top_opportunities", "Top Opportunités", "Meilleurs signaux du moment"),
                 MoreItem("ai_forecasts", "🧠 Pronostics IA", "Mémoire glissante CT/LT — L'IA apprend même sans signal joué"),
@@ -46,6 +47,7 @@ fun MoreScreen(onNavigate: (String) -> Unit) {
         MoreGroup(
             "Réglages",
             listOf(
+                MoreItem("real_validation", "⚡ Validation Réelle", "Diagnostic avant passage au capital réel — blocages uniquement sur dangers réels"),
                 MoreItem("market_data_center", "📡 Données marché", "Sources Alpha Vantage / Broker — vérifie la fraîcheur des cours"),
                 MoreItem("onboarding", "Première utilisation", "Checklist de départ"),
                 MoreItem("preferences_center", "Préférences", "Affichage, devise, notifications"),

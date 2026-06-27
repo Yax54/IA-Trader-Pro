@@ -6,6 +6,7 @@ import com.privateinvest.aitraderpro.database.AppDatabase
 import com.privateinvest.aitraderpro.network.MarketApiService
 import com.privateinvest.aitraderpro.notifications.TraderNotificationManager
 import com.privateinvest.aitraderpro.repository.AdaptiveWeightsManager
+import com.privateinvest.aitraderpro.repository.BackupSafetyRepository
 import com.privateinvest.aitraderpro.repository.DataFreshnessGuard
 import com.privateinvest.aitraderpro.repository.MarketDataConnectionRepository
 import com.privateinvest.aitraderpro.repository.MarketRepository
@@ -28,6 +29,9 @@ object ServiceLocator {
     fun init(context: Context) {
         appContext = context.applicationContext
     }
+
+    // Propriété publique nécessaire pour BackupSafetyRepository et ControlCenterRepository
+    val context: Context get() = appContext
 
     @OptIn(ExperimentalSerializationApi::class)
     private val json by lazy {
@@ -81,6 +85,10 @@ object ServiceLocator {
 
     val securityRepository: SecurityRepository by lazy {
         SecurityRepository(appContext, database.securityLogDao())
+    }
+
+    val backupSafetyRepository: BackupSafetyRepository by lazy {
+        BackupSafetyRepository(appContext)
     }
 
     val marketDataConnectionRepository: MarketDataConnectionRepository by lazy {

@@ -11,13 +11,18 @@ import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
@@ -35,6 +40,29 @@ import com.privateinvest.aitraderpro.viewmodel.PortfolioViewModel
 fun PortfolioScreen() {
     val viewModel: PortfolioViewModel = viewModel(factory = AITraderViewModelFactory)
     val state by viewModel.uiState.collectAsStateWithLifecycle()
+
+    // R-03 : état du dialog de confirmation de vente
+    var symbolToSell by remember { mutableStateOf<String?>(null) }
+
+    // R-03 : dialog de confirmation
+    symbolToSell?.let { sym ->
+        AlertDialog(
+            onDismissRequest = { symbolToSell = null },
+            title = { Text("Confirmer la vente") },
+            text = { Text("Clôturer la position simulée sur $sym ?\nCette action est irréversible.") },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        viewModel.sellPosition(sym)
+                        symbolToSell = null
+                    }
+                ) { Text("Vendre") }
+            },
+            dismissButton = {
+                TextButton(onClick = { symbolToSell = null }) { Text("Annuler") }
+            }
+        )
+    }
 
     LazyColumn(
         modifier = Modifier
@@ -56,15 +84,20 @@ fun PortfolioScreen() {
             }
         }
         item {
+            // R-01 : couleur du badge selon signe de la performance
+            val perfPositive = !state.summary.totalPerformance.trimStart().startsWith("-")
+            val perfColor = if (perfPositive) Success else DangerRed
+
             Card(colors = CardDefaults.cardColors(containerColor = Slate), shape = RoundedCornerShape(22.dp)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
                     Text("Performance simulation", style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
                     Text(
                         state.summary.totalPerformance,
                         modifier = Modifier
-                            .background(Success, RoundedCornerShape(999.dp))
+                            .background(perfColor, RoundedCornerShape(999.dp))
                             .padding(horizontal = 12.dp, vertical = 6.dp),
-                        color = Color.White
+                        color = Color.White,
+                        fontWeight = FontWeight.Bold
                     )
                     RowLine("Positions ouvertes", state.summary.openPositions.toString())
                     RowLine("Réussite J+1", state.summary.successRateJ1)
@@ -85,15 +118,33 @@ fun PortfolioScreen() {
             }
         }
         items(state.positions) { position ->
+            // R-01 : couleur de la performance par position
+            val posPerf = !position.performance.trimStart().startsWith("-")
+            val posPerfColor = if (posPerf) Success else DangerRed
+
             Card(colors = CardDefaults.cardColors(containerColor = Slate), shape = RoundedCornerShape(22.dp)) {
                 Column(Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                    Text(position.symbol, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                    Row(Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.SpaceBetween) {
+                        Text(position.symbol, style = MaterialTheme.typography.titleMedium, fontWeight = FontWeight.Bold)
+                        Text(
+                            position.performance,
+                            modifier = Modifier
+                                .background(posPerfColor, RoundedCornerShape(999.dp))
+                                .padding(horizontal = 10.dp, vertical = 4.dp),
+                            color = Color.White,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
                     RowLine("Quantité", String.format("%.0f", position.quantity))
                     RowLine("Prix moyen", position.averagePrice)
                     RowLine("Prix marché", position.marketPrice)
                     RowLine("Valeur", position.marketValue)
-                    RowLine("Performance", position.performance)
-                    Button(onClick = { viewModel.sellPosition(position.symbol) }, modifier = Modifier.fillMaxWidth()) {
+                    // R-03 : bouton ouvre le dialog au lieu de vendre directement
+                    Button(
+                        onClick = { symbolToSell = position.symbol },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
                         Text("Vendre en simulation")
                     }
                 }

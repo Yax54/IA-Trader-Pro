@@ -1,6 +1,13 @@
 package com.privateinvest.aitraderpro.navigation
 
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Star
+import androidx.compose.material3.Icon
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.Scaffold
@@ -18,6 +25,7 @@ import com.privateinvest.aitraderpro.ui.screens.AlertsScreen
 import com.privateinvest.aitraderpro.ui.screens.AssetDetailScreen
 import com.privateinvest.aitraderpro.ui.screens.AuditScreen
 import com.privateinvest.aitraderpro.ui.screens.BackupScreen
+import com.privateinvest.aitraderpro.ui.screens.BrokerAssistantScreen
 import com.privateinvest.aitraderpro.ui.screens.CalendarIAScreen
 import com.privateinvest.aitraderpro.ui.screens.DashboardScreen
 import com.privateinvest.aitraderpro.ui.screens.ExportCenterScreen
@@ -45,10 +53,17 @@ fun AITraderApp() {
         AppDestination.More
     )
 
+    // R-15 : passage du symbol+name via SelectedAssetStore (conservé — migration nav args hors scope build)
     fun openAsset(symbol: String, name: String) {
         SelectedAssetStore.currentSymbol = symbol
         SelectedAssetStore.currentName = name
         navController.navigate(AppDestination.AssetDetail.route)
+    }
+
+    fun openBroker(symbol: String, name: String) {
+        SelectedAssetStore.currentSymbol = symbol
+        SelectedAssetStore.currentName = name
+        navController.navigate(AppDestination.BrokerAssistant.route)
     }
 
     Scaffold(
@@ -66,7 +81,8 @@ fun AITraderApp() {
                                     restoreState = true
                                 }
                             },
-                            icon = { Text(iconFor(item), fontSize = 20.sp) },
+                            // R-08 : icônes Material Icons au lieu de caractères Unicode
+                            icon = { Icon(iconFor(item), contentDescription = item.label) },
                             label = { Text(item.label, fontSize = 12.sp) }
                         )
                     }
@@ -89,7 +105,12 @@ fun AITraderApp() {
                     onOpenAsset = ::openAsset
                 )
             }
-            composable(AppDestination.TopOpportunities.route) { TopOpportunitiesScreen(onOpenAsset = ::openAsset) }
+            composable(AppDestination.TopOpportunities.route) {
+                TopOpportunitiesScreen(
+                    onOpenAsset = ::openAsset,
+                    onOpenBroker = ::openBroker
+                )
+            }
             composable(AppDestination.Watchlist.route) { WatchlistScreen(onOpenAsset = ::openAsset) }
             composable(AppDestination.Alerts.route) { AlertsScreen() }
             composable(AppDestination.Portfolio.route) { PortfolioScreen() }
@@ -97,9 +118,15 @@ fun AITraderApp() {
             composable(AppDestination.Admin.route) { AdminScreen() }
             composable(AppDestination.Risk.route) { RiskScreen() }
             composable(AppDestination.AssetDetail.route) {
-                AssetDetailScreen(onOpenAssistant = { navController.navigate(AppDestination.SignalAssistant.route) })
+                AssetDetailScreen(
+                    onBack = { navController.popBackStack() },       // R-10
+                    onOpenAssistant = { navController.navigate(AppDestination.SignalAssistant.route) }
+                )
             }
-            composable(AppDestination.SignalAssistant.route) { SignalAssistantScreen() }
+            composable(AppDestination.SignalAssistant.route) {
+                // R-11 : bouton retour branché
+                SignalAssistantScreen(onBack = { navController.popBackStack() })
+            }
             composable(AppDestination.More.route) { MoreScreen { route -> navController.navigate(route) } }
             composable(AppDestination.InstallTest.route) { InstallTestScreen() }
             composable(AppDestination.JournalIA.route) { JournalIAScreen() }
@@ -109,15 +136,23 @@ fun AITraderApp() {
             composable(AppDestination.Goals.route) { GoalsScreen() }
             composable(AppDestination.Backup.route) { BackupScreen() }
             composable(AppDestination.Exports.route) { ExportCenterScreen() }
+            // MODULE BROKER
+            composable(AppDestination.BrokerAssistant.route) {
+                BrokerAssistantScreen(
+                    onBack = { navController.popBackStack() }
+                )
+            }
         }
     }
 }
 
-private fun iconFor(destination: AppDestination): String = when (destination) {
-    AppDestination.Dashboard -> "⌂"
-    AppDestination.TopOpportunities -> "★"
-    AppDestination.Portfolio -> "€"
-    AppDestination.Alerts -> "!"
-    AppDestination.More -> "+"
-    else -> "•"
+// R-08 : icônes Material Icons
+@Composable
+private fun iconFor(destination: AppDestination) = when (destination) {
+    AppDestination.Dashboard -> Icons.Filled.Home
+    AppDestination.TopOpportunities -> Icons.Filled.Star
+    AppDestination.Portfolio -> Icons.Filled.AccountBalance
+    AppDestination.Alerts -> Icons.Filled.Notifications
+    AppDestination.More -> Icons.Filled.Add
+    else -> Icons.Filled.Home
 }

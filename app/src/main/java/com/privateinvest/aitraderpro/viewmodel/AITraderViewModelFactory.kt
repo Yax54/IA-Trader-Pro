@@ -21,6 +21,7 @@ object AITraderViewModelFactory : ViewModelProvider.Factory {
             modelClass.isAssignableFrom(RiskViewModel::class.java) -> RiskViewModel(repository) as T
             modelClass.isAssignableFrom(AssetDetailViewModel::class.java) -> AssetDetailViewModel(repository) as T
             modelClass.isAssignableFrom(SettingsViewModel::class.java) -> SettingsViewModel(userPreferencesRepository) as T
+            modelClass.isAssignableFrom(BrokerViewModel::class.java) -> BrokerViewModel(repository) as T
             else -> throw IllegalArgumentException("Unknown ViewModel: ${modelClass.name}")
         }
     }
